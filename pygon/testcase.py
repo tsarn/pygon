@@ -26,6 +26,7 @@ import shlex
 from enum import Enum
 
 import yaml
+from loguru import logger
 
 from pygon.generator import Generator
 from pygon.config import TEST_FORMAT, BUILD_DIR
@@ -150,6 +151,11 @@ class SolutionTest:
 
         if not self.generate:
             return
+
+        logger.info("<bold>{problem} :: </bold> generating test {index}".format(
+            problem=self.problem.internal_name,
+            index=self.index
+        ))
 
         dirname = os.path.dirname(self.get_input_path())
         os.makedirs(dirname, exist_ok=True)
