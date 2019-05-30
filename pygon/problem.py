@@ -55,10 +55,57 @@ class Problem:
         self.active_checker = None
         self.active_validators = []
 
+    def get_source_filename(self, directory, name):
+        """Get a source filename from identifier, or determine that
+        the source doesn't exist.
+
+        Args:
+            directory: directory where to look for the source (e.g. "checkers")
+            name: identifier of the source (e.g. "check")
+
+        Returns:
+            None if source was not found, filename of the source otherwise
+            (e.g. "check.cpp")
+        """
+
+        lst = os.listdir(os.path.join(self.root, directory))
+        for i in lst:
+            if os.path.splitext(i)[0] == name and not i.endswith(".yaml"):
+                return i
+
+        return None
+
     def get_descriptor_path(self):
         """Returns a path to problem's descriptor file"""
 
         return os.path.join(self.root, "problem.yaml")
+
+    def get_sources(self, directory):
+        """Returns a list of all sources' filenames.
+
+        Args:
+            directory: directory where to look for the source (e.g. "solutions")
+
+        Returns:
+            list of source filenames (e.g. ["solve_ok.cpp", "solve_wa.cpp"])
+        """
+
+        res = []
+
+        lst = set(os.listdir(os.path.join(self.root, directory)))
+        for i in lst:
+            if i.endswith(".yaml"):
+                continue
+
+            base = os.path.splitext(i)[0]
+            if '{}.yaml'.format(base) not in lst:
+                continue
+
+            res.append(i)
+
+        res.sort()
+
+        return res
 
     def get_solution_tests(self):
         """Collects all of the SolutionTests from file system and

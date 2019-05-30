@@ -19,37 +19,30 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+import os
 from os.path import normpath
 
-from pygon.source import Source
-from pygon.language import Language
 from pygon.problem import Problem
 
-class MockLanguage(Language):
-    def get_compile_command(self, src, exe):
-        return [normpath("/x/compile"), src, exe]
 
-    def get_execute_command(self, src, exe):
-        return [normpath("/y/execute"), src, exe]
+class TestProblem:
+    def test_get_source_filename(self, monkeypatch):
+        p = Problem("/x/prob")
+        monkeypatch.setattr(os, 'listdir', lambda _: [
+            "test1.yaml",
+            "test1.cpp",
+            "test2.yaml",
+            "test3.py",
+        ])
+        assert p.get_source_filename("sources", "test1") == "test1.cpp"
+        assert p.get_source_filename("sources", "test2") == None
 
-
-class MockSource(Source):
-    directory_name = "mock"
-    standard_instances = ["foo", "bar"]
-
-custom_src = MockSource(name="test.cpp", problem=Problem(normpath("/x/prob")),
-                        lang=MockLanguage())
-
-class TestSource:
-    def test_get_descriptor_path(self):
-        assert custom_src.get_descriptor_path() == normpath("/x/prob/mock/test.yaml")
-
-    def test_identifier(self):
-        assert custom_src.identifier == "test"
-
-    def test_get_execute_command(self):
-        assert custom_src.get_execute_command() == [
-            normpath("/y/execute"),
-            normpath("/x/prob/mock/test.cpp"),
-            normpath("/x/prob/pygon-build/mock/test")
-        ]
+    def test_get_sources(self, monkeypatch):
+        p = Problem("/x/prob")
+        monkeypatch.setattr(os, 'listdir', lambda _: [
+            "test1.yaml",
+            "test1.cpp",
+            "test2.yaml",
+            "test3.py",
+        ])
+        assert p.get_sources("sources") == ["test1.cpp"]

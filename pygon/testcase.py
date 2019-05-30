@@ -22,6 +22,7 @@
 """This module defines class for working with tests and verdicts."""
 
 import os
+import shlex
 from enum import Enum
 
 import yaml
@@ -142,3 +143,17 @@ class SolutionTest:
 
         return os.path.join(self.problem.root, BUILD_DIR, "tests",
                             TEST_FORMAT.format(self.index))
+
+    def generate(self):
+        """If a test is not manual, generates it."""
+
+        if not self.generate:
+            return
+
+        dirname = os.path.dirname(self.get_input_path())
+        os.makedirs(dirname, exist_ok=True)
+
+        args = shlex.split(self.generate)
+        gen = Generator.from_identifier(args.pop(0), self.problem)
+        gen.ensure_compile()
+        gen.generate(self.get_input_path(), args)

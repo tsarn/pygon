@@ -24,14 +24,30 @@
 import os
 from abc import ABC
 
+import yaml
 from pkg_resources import resource_filename
 
 from pygon.language import Language
 from pygon.config import BUILD_DIR
 
 
+class UnknownSourceError(Exception):
+    """Raised when source with specified name could not be found."""
+
+
 class Source(ABC):
-    """A source file"""
+    """A source file.
+
+    Class attributes:
+        directory_name: directory name in problem hierarchy.
+        standard_instances: list of identifiers of standard sources.
+
+    Attributes:
+        standard: None if custom source, otherwise an identifier of standard
+                  source (e.g. "lcmp").
+        problem: the source's Problem.
+        lang: the source's Language.
+    """
 
     directory_name = "sources"
     standard_instances = []
@@ -93,8 +109,54 @@ class Source(ABC):
 
         return os.path.splitext(self.name)[0]
 
+    @classmethod
+    def from_identifier(cls, identifier, problem):
+        """Construct an existing Source from an identifier and a problem."""
+
+        if identifier.startswith("standard."):
+            return cls(standard=identifier[len("standard."):])
+
+        name = problem.get_source_filename(cls.directory_name, identifier)
+        if name is None:
+            raise UnknownSourceError("{} is not among {} of problem {}".format(
+                identifier,
+                cls.directory_name,
+                problem.internal_name))
+
+        res = cls(name=name, problem=problem)
+        res.load()
+        return res
+
+    @classmethod
+    def all(cls, problem):
+        """Loads all problem's sources of this type.
+
+        Args:
+            problem: the relevant Problem instance.
+
+        Returns:
+            a list of Sources.
+        """
+
+        res = []
+
+        for name in self.problem.get_sources(cls.directory_name):
+            src = cls(name=name, problem=problem)
+            src.load()
+            res.append(src)
+
+        return res
+
+    def load(self):
+        """Loads data about itself from the descriptor file."""
+
+        with open(self.get_descriptor_path()) as desc:
+            data = yaml.safe_load(desc)
+
+        self.lang = Language.from_name(data.get('language'))
+
     def get_descriptor_path(self):
-        """Return path to descriptor, where information
+        """Returns path to descriptor, where information
         about the source is stored.
         """
 

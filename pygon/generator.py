@@ -19,37 +19,41 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-from os.path import normpath
+"""This module defines class for working with generators."""
+
+import subprocess
+from collections import namedtuple
 
 from pygon.source import Source
-from pygon.language import Language
-from pygon.problem import Problem
-
-class MockLanguage(Language):
-    def get_compile_command(self, src, exe):
-        return [normpath("/x/compile"), src, exe]
-
-    def get_execute_command(self, src, exe):
-        return [normpath("/y/execute"), src, exe]
 
 
-class MockSource(Source):
-    directory_name = "mock"
-    standard_instances = ["foo", "bar"]
+class Generator(Source):
+    """A generator for a problem"""
 
-custom_src = MockSource(name="test.cpp", problem=Problem(normpath("/x/prob")),
-                        lang=MockLanguage())
+    directory_name = "generators"
 
-class TestSource:
-    def test_get_descriptor_path(self):
-        assert custom_src.get_descriptor_path() == normpath("/x/prob/mock/test.yaml")
+    def __init__(self, **kwargs):
+        """Constructs a Generator.
 
-    def test_identifier(self):
-        assert custom_src.identifier == "test"
+        Args:
+            name: name of the generator with extension (e.g. "gen.cpp").
+            problem: Problem which this generator belongs to.
+            lang: Language of the generator.
+        """
 
-    def test_get_execute_command(self):
-        assert custom_src.get_execute_command() == [
-            normpath("/y/execute"),
-            normpath("/x/prob/mock/test.cpp"),
-            normpath("/x/prob/pygon-build/mock/test")
-        ]
+        super(Checker, self).__init__(**kwargs)
+
+    def generate(self, path, args=[]):
+        """Generates a test.
+        Expects generator to be already compiled.
+
+        Args:
+            path: path to the test.
+            args: a list of arguments to the generator.
+        """
+
+        cmd = self.get_execute_command()
+        cmd += args
+        with open(path, 'wb') as test:
+            subprocess.run(cmd, stdout=test, check=True)
+
