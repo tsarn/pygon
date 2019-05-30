@@ -26,6 +26,7 @@ from abc import ABC
 
 import yaml
 from pkg_resources import resource_filename
+from loguru import logger
 
 from pygon.language import Language
 from pygon.config import BUILD_DIR
@@ -100,6 +101,14 @@ class Source(ABC):
         return os.path.join(self.problem.root, BUILD_DIR,
                             self.directory_name, self.identifier)
 
+    def get_resource_dirs(self):
+        """Returns a list of resource directories in search order."""
+
+        return [
+            os.path.join(self.problem.root, "resources"),
+            resource_filename("pygon", os.path.join("data", "resources"))
+        ]
+
     @property
     def identifier(self):
         """Returns source's identifier, usually filename without extension."""
@@ -169,14 +178,15 @@ class Source(ABC):
             CalledProcessError: if compiler returns non-zero exit code.
         """
 
-        logger.info("<bold>{problem} :: </bold> compiling {name}".format(
-            problem=self.problem.internal_name,
-            name=self.identifier
-        ))
+        logger.info("{problem} :: compiling {name}",
+                    problem=self.problem.internal_name,
+                    name=self.identifier
+                    )
 
         dirname = os.path.dirname(self.get_executable_path())
         os.makedirs(dirname, exist_ok=True)
-        self.lang.compile(self.get_source_path(), self.get_executable_path())
+        self.lang.compile(self.get_source_path(), self.get_executable_path(),
+                          self.get_resource_dirs())
 
     def ensure_compile(self):
         """Compiles the source if executable is missing or

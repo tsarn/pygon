@@ -21,5 +21,65 @@
 
 """This module defines some configuration."""
 
+import os
+
+import yaml
+from loguru import logger
+from appdirs import user_config_dir
+
 BUILD_DIR = "pygon-build"
 TEST_FORMAT = "{:02d}"
+
+DEFAULT_CONFIG_FILE = """\
+# Path to invoke utility. Default works if invoke is in your PATH.
+# Install from https://github.com/TsarN/invoke
+invoke: "invoke"
+
+# Path to pdflatex. Default works if pdflatex is in your PATH.
+pdflatex: "pdflatex"
+
+# Language configurations, pretty self-explanatory.
+# Once again, default works if necessary tools are in your PATH.
+languages:
+    c++03:
+        compile: "g++ -Wall -O2 -lm -std=c++03 {src} -o {exe} {inc}"
+    c++11:
+        compile: "g++ -Wall -O2 -lm -std=c++11 {src} -o {exe} {inc}"
+        autodetect: [".cc", ".cpp"]
+    c++14:
+        compile: "g++ -Wall -O2 -lm -std=c++14 {src} -o {exe} {inc}"
+    c++17:
+        compile: "g++ -Wall -O2 -lm -std=c++17 {src} -o {exe} {inc}"
+
+    c99:
+        compile: "gcc -Wall -O2 -lm -std=c99 {src} -o {exe} {inc}"
+    c11:
+        compile: "gcc -Wall -O2 -lm -std=c99 {src} -o {exe} {inc}"
+        autodetect: [".c"]
+
+    python2:
+        execute: "python2 {src}"
+    python3:
+        execute: "python3 {src}"
+        autodetect: [".cpp"]
+"""
+
+
+def load_config():
+    """Reads config as a Python object. Creates config file if missing."""
+
+    path = os.path.join(user_config_dir("pygon"), "pygon.yaml")
+
+    logger.info("Loading configuration from '{}'", path)
+
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+
+    if not os.path.exists(path):
+        with open(path, 'w') as cfg:
+            cfg.write(DEFAULT_CONFIG_FILE)
+
+    with open(path) as cfg:
+        return yaml.safe_load(cfg.read())
+
+
+CONFIG = load_config()

@@ -62,13 +62,23 @@ class FileName:
     """An object, representing file name of problem's input/output.
     May be either standard IO or a file with a name.
     """
-    def __init__(self, stdio=False, filename=None):
+    def __init__(self, mixed=None, stdio=False, filename=None):
         """Constructs a FileName.
 
         Args:
+            mixed: if set, then if equal to "standard_io", then stdio == True,
+                   else filename == mixed
             stdio: if True, use standard IO
             filename: if stdio is False, use file with this name
         """
+
+        if mixed:
+            if mixed == "standard_io":
+                stdio = True
+                filename = None
+            else:
+                stdio = False
+                filename = mixed
 
         self.stdio = stdio
         self.filename = filename
@@ -152,10 +162,10 @@ class SolutionTest:
         if not self.generate:
             return
 
-        logger.info("<bold>{problem} :: </bold> generating test {index}".format(
-            problem=self.problem.internal_name,
-            index=self.index
-        ))
+        logger.info("{problem} :: generating test {index}",
+                    problem=self.problem.internal_name,
+                    index=self.index
+                    )
 
         dirname = os.path.dirname(self.get_input_path())
         os.makedirs(dirname, exist_ok=True)

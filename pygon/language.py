@@ -22,20 +22,24 @@
 """This module defines classes for working with languages / compilers."""
 
 import subprocess
+import shlex
 from abc import ABC, abstractmethod
+
+from pygon.config import CONFIG
 
 
 class Language(ABC):
     """Programming language / compiler."""
 
     @abstractmethod
-    def get_compile_command(self, src, exe):
+    def get_compile_command(self, src, exe, res):
         """Returns compilation command as list of strings
         or None if compilation is not required.
 
         Args:
             src: absolute path to source code file
             exe: absolute path to resulting executable
+            res: list of resource directories.
 
         Returns:
             None or compilation command as a list of strings, for example:
@@ -58,19 +62,47 @@ class Language(ABC):
     @staticmethod
     def from_name(name):
         """Returns a configured Language with specified name."""
-        # TODO
 
-    def compile(self, src, exe):
+        cfg = CONFIG['languages'].get(name)
+        if cfg is None:
+            raise ValueError("Language '{}' is not configured.".format(name))
+
+        compile_cmd = cfg.get('compile')
+        execute_cmd = cfg.get('execute', '{exe}')
+
+        class CustomLanguage(Language):
+            def get_compile_command(self, src, exe, res):
+                if not compile_cmd:
+                    return None
+
+                inc = ""
+
+                for i in res:
+                    inc += "-I {} ".format(shlex.quote(i))
+
+                return shlex.split(compile_cmd.format(src=shlex.quote(src),
+                                                      exe=shlex.quote(exe),
+                                                      inc=inc))
+
+            def get_execute_command(self, src, exe):
+                return shlex.split(execute_cmd.format(src=shlex.quote(src),
+                                                      exe=shlex.quote(exe)))
+
+        return CustomLanguage()
+
+
+    def compile(self, src, exe, res):
         """Unconditionally compiles a file.
 
         Args:
             src: absolute path to source code file.
             exe: absolute path to resulting executable.
+            res: list of resource directories.
 
         Raises:
             CalledProcessError: if compiler returns non-zero exit code.
         """
-        cmd = self.get_compile_command(src, exe)
+        cmd = self.get_compile_command(src, exe, res)
         if not cmd:
             return
         subprocess.run(cmd, check=True)

@@ -23,7 +23,7 @@ VERSION = '0.1.0'
 
 # What packages are required for this module to be executed?
 REQUIRED = [
-    'pyyaml', 'loguru'
+    'pyyaml', 'loguru', 'appdirs'
 ]
 
 # What packages are optional?
@@ -105,9 +105,9 @@ setup(
     python_requires=REQUIRES_PYTHON,
     url=URL,
     packages=['pygon'],
-    # entry_points={
-    #     'console_scripts': ['mycli=mymodule:cli'],
-    # },
+    entry_points={
+        'console_scripts': ['pygon=pygon.cli:cli'],
+    },
     install_requires=REQUIRED,
     extras_require=EXTRAS,
     include_package_data=True,

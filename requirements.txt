@@ -1,8 +1,10 @@
 ansimarkup==1.4.0
+appdirs==1.4.3
 astroid==2.2.5
 atomicwrites==1.3.0
 attrs==19.1.0
 better-exceptions-fork==0.2.1.post6
+Click==7.0
 colorama==0.4.1
 importlib-metadata==0.15
 isort==4.3.20
@@ -13,6 +15,8 @@ more-itertools==7.0.0
 pluggy==0.12.0
 py==1.8.0
 Pygments==2.4.2
+# Editable Git install with no remote (pygon==0.1.0)
+-e /home/tsarn/Coding/pygon
 pylint==2.3.1
 pytest==4.5.0
 PyYAML==5.1

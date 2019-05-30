@@ -23,6 +23,8 @@
 
 import os
 
+import yaml
+
 from pygon.testcase import FileName, SolutionTest
 from pygon.config import TEST_FORMAT
 
@@ -54,6 +56,33 @@ class Problem:
         self.memory_limit = 256.0
         self.active_checker = None
         self.active_validators = []
+
+    def load(self):
+        """Load itself from descriptor."""
+
+        from pygon.checker import Checker
+        from pygon.validator import Validator
+
+        with open(self.get_descriptor_path()) as desc:
+            data = yaml.safe_load(desc.read())
+
+        self.internal_name = data["internal_name"]
+        self.input_file = FileName(data.get("input_file", "standard_io"))
+        self.output_file = FileName(data.get("output_file", "standard_io"))
+        self.time_limit = data.get("time_limit", 1.0)
+        self.memory_limit = data.get("memory_limit", 256.0)
+
+        chk = data.get("active_checker")
+
+        if chk:
+            self.active_checker = Checker.from_identifier(chk, self)
+        else:
+            self.active_checker = None
+
+        self.active_validators = []
+
+        for i in data.get("active_validators"):
+            self.active_validators.append(Validator.from_identifier(i, self))
 
     def get_source_filename(self, directory, name):
         """Get a source filename from identifier, or determine that
