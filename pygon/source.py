@@ -1,0 +1,140 @@
+# Copyright (c) 2019 Tsarev Nikita
+#
+# Permission is hereby granted, free of charge, to any person obtaining
+# a copy of this software and associated documentation files (the
+# "Software"), to deal in the Software without restriction, including
+# without limitation the rights to use, copy, modify, merge, publish,
+# distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so, subject to
+# the following conditions:
+#
+# The above copyright notice and this permission notice shall be included
+# in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+"""This module defines classes for working sources."""
+
+import os
+from abc import ABC
+
+from pkg_resources import resource_filename
+
+from pygon.language import Language
+from pygon.config import BUILD_DIR
+
+
+class Source(ABC):
+    """A source file"""
+
+    directory_name = "sources"
+    standard_instances = []
+
+    def __init__(self, standard=None, name=None, problem=None, lang=None):
+        """Constructs a Source.
+
+        Args:
+            standard: None if custom source,
+                      one of Source.standard_instances otherwise
+
+        Args (if not standard):
+            name: the source's name with extension (e.g. "source.cpp").
+            problem: the source's Problem.
+            lang: the source's Language.
+        """
+
+        if standard and standard not in self.standard_instances:
+            raise ValueError("standard: expected one of {}, got {}".format(
+                self.standard_instances, standard))
+
+        self.standard = standard
+
+        if standard:
+            name = "{}.cpp".format(standard)
+            lang = Language.from_name("c++11")
+
+        self.name = name
+        self.problem = problem
+        self.lang = lang
+
+    def get_source_path(self):
+        """Returns path to source code file."""
+
+        if self.standard:
+            return resource_filename(
+                "pygon", os.path.join("data", self.directory_name, self.name))
+
+        return os.path.join(self.problem.root, self.directory_name, self.name)
+
+    def get_executable_path(self):
+        """Returns path to executable file."""
+
+        if self.standard:
+            return resource_filename(
+                "pygon",
+                os.path.join("data", BUILD_DIR,
+                             self.directory_name, self.standard))
+
+        return os.path.join(self.problem.root, BUILD_DIR,
+                            self.directory_name, self.identifier)
+
+    @property
+    def identifier(self):
+        """Returns source's identifier, usually filename without extension."""
+
+        if self.standard:
+            return "standard.{}".format(self.standard)
+
+        return os.path.splitext(self.name)[0]
+
+    def get_descriptor_path(self):
+        """Return path to descriptor, where information
+        about the source is stored.
+        """
+
+        return os.path.splitext(self.get_source_path())[0] + ".yaml"
+
+    def compile(self):
+        """Compiles the source.
+
+        Raises:
+            CalledProcessError: if compiler returns non-zero exit code.
+        """
+
+        dirname = os.path.dirname(self.get_executable_path())
+        os.makedirs(dirname, exist_ok=True)
+        self.lang.compile(self.get_source_path(), self.get_executable_path())
+
+    def ensure_compile(self):
+        """Compiles the source if executable is missing or
+        is older than the source file.
+
+        Raises:
+            OSError: if source file doesn't exist or is inaccessible.
+            CalledProcessError: if compiler returns non-zero exit code.
+        """
+
+        src_time = os.path.getmtime(self.get_source_path())
+        try:
+            exe_time = os.path.getmtime(self.get_executable_path())
+        except OSError:
+            self.compile()
+        else:
+            if exe_time < src_time:
+                self.compile()
+
+    def get_execute_command(self):
+        """Returns a command to execute the source.
+
+        Returns:
+            a list of strings: the command.
+        """
+
+        return self.lang.get_execute_command(self.get_source_path(),
+                                             self.get_executable_path())

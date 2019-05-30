@@ -1,0 +1,7 @@
+include LICENSE
+include README.md
+recursive-include pygon/data/checkers *
+recursive-include pygon/data/resources *
+recursive-include pygon/data/validators *
+recursive-include docs *
+recursive-exclude tests *.pyc

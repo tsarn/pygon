@@ -1,0 +1,7 @@
+internal_name: example-aplusb
+input_file: standard_io
+output_file: standard_io
+time_limit: 1000
+memory_limit: 256
+active_checker: standard.lcmp
+active_validators: [standard.wfval]
