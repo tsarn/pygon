@@ -22,7 +22,6 @@
 """This module defines class for working with generators."""
 
 import subprocess
-from collections import namedtuple
 
 from pygon.source import Source
 
@@ -41,9 +40,9 @@ class Generator(Source):
             lang: Language of the generator.
         """
 
-        super(Checker, self).__init__(**kwargs)
+        super(Generator, self).__init__(**kwargs)
 
-    def generate(self, path, args=[]):
+    def generate(self, path, args):
         """Generates a test.
         Expects generator to be already compiled.
 
@@ -56,4 +55,3 @@ class Generator(Source):
         cmd += args
         with open(path, 'wb') as test:
             subprocess.run(cmd, stdout=test, check=True)
-

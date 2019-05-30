@@ -27,6 +27,7 @@ from enum import Enum
 
 import yaml
 
+from pygon.generator import Generator
 from pygon.config import TEST_FORMAT, BUILD_DIR
 
 class Verdict(Enum):
@@ -144,7 +145,7 @@ class SolutionTest:
         return os.path.join(self.problem.root, BUILD_DIR, "tests",
                             TEST_FORMAT.format(self.index))
 
-    def generate(self):
+    def build(self):
         """If a test is not manual, generates it."""
 
         if not self.generate:

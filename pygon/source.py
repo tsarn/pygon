@@ -140,7 +140,7 @@ class Source(ABC):
 
         res = []
 
-        for name in self.problem.get_sources(cls.directory_name):
+        for name in problem.get_sources(cls.directory_name):
             src = cls(name=name, problem=problem)
             src.load()
             res.append(src)
