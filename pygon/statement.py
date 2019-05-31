@@ -177,9 +177,9 @@ class Statement:
             return ""
 
         res = r"""
-\Examples
+%s
 \begin{example}
-"""
+""" % (r"\Examples" if len(tests) > 1 else r"\Example")
 
         for inp, ans in tests:
             res += """\
