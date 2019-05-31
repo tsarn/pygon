@@ -156,16 +156,23 @@ class SolutionTest:
         return os.path.join(self.problem.root, BUILD_DIR, "tests",
                             TEST_FORMAT.format(self.index))
 
+    def get_output_path(self, identifier):
+        """Returns a path to the output data.
+
+        Args:
+            identifier: identifier of solution whose output data to point to.
+        """
+
+        return os.path.join(self.problem.root, BUILD_DIR, "outputs",
+                            identifier, TEST_FORMAT.format(self.index))
+
     def build(self):
         """If a test is not manual, generates it."""
 
         if not self.generate:
             return
 
-        logger.info("{problem} :: generating test {index}",
-                    problem=self.problem.internal_name,
-                    index=self.index
-                    )
+        logger.info("Generating test {index}", index=self.index)
 
         dirname = os.path.dirname(self.get_input_path())
         os.makedirs(dirname, exist_ok=True)

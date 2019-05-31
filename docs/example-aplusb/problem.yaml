@@ -1,6 +1,6 @@
 internal_name: example-aplusb
-input_file: standard_io
-output_file: standard_io
+input_file: input.txt
+output_file: output.txt
 time_limit: 1000
 memory_limit: 256
 active_checker: standard.lcmp

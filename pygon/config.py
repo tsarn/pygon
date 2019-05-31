@@ -24,22 +24,20 @@
 import os
 
 import yaml
-from loguru import logger
 from appdirs import user_config_dir
 
 BUILD_DIR = "pygon-build"
 TEST_FORMAT = "{:02d}"
 
 DEFAULT_CONFIG_FILE = """\
-# Path to invoke utility. Default works if invoke is in your PATH.
-# Install from https://github.com/TsarN/invoke
-invoke: "invoke"
+# Path to GNU time utility.
+time: "/usr/bin/time"
 
 # Path to pdflatex. Default works if pdflatex is in your PATH.
 pdflatex: "pdflatex"
 
 # Language configurations, pretty self-explanatory.
-# Once again, default works if necessary tools are in your PATH.
+# Again, default works if necessary tools are in your PATH.
 languages:
     c++03:
         compile: "g++ -Wall -O2 -lm -std=c++03 {src} -o {exe} {inc}"
@@ -61,7 +59,7 @@ languages:
         execute: "python2 {src}"
     python3:
         execute: "python3 {src}"
-        autodetect: [".cpp"]
+        autodetect: [".py"]
 """
 
 
@@ -69,8 +67,6 @@ def load_config():
     """Reads config as a Python object. Creates config file if missing."""
 
     path = os.path.join(user_config_dir("pygon"), "pygon.yaml")
-
-    logger.info("Loading configuration from '{}'", path)
 
     os.makedirs(os.path.dirname(path), exist_ok=True)
 

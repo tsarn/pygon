@@ -26,6 +26,7 @@ import sys
 import re
 
 import click
+from loguru import logger
 
 from pygon.problem import Problem
 from pygon.checker import Checker
@@ -47,7 +48,7 @@ def get_problem():
         if os.path.dirname(dirname) == dirname:
             break
 
-    print("Couldn't find problem.yaml")
+    logger.error("Not in a problem directory")
     sys.exit(1)
 
 
@@ -102,14 +103,17 @@ active_validators: [standard.wfval]
 def build():
     prob = get_problem()
 
-    for i in Checker.all(prob):
+    if prob.active_checker:
+        prob.active_checker.ensure_compile()
+
+    for i in prob.active_validators:
         i.ensure_compile()
 
-    for i in Validator.all(prob):
-        i.ensure_compile()
+    main_solution = prob.get_main_solution()
 
-    for i in Generator.all(prob):
-        i.ensure_compile()
+    for test in prob.get_solution_tests():
+        test.build()
+        main_solution.judge(test)
 
 
 cli.add_command(init)

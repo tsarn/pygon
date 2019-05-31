@@ -28,6 +28,11 @@ import yaml
 from pygon.testcase import FileName, SolutionTest
 from pygon.config import TEST_FORMAT
 
+
+class ProblemConfigurationError(Exception):
+    pass
+
+
 class Problem:
     """A problem.
 
@@ -135,6 +140,35 @@ class Problem:
         res.sort()
 
         return res
+
+    def get_main_solution(self):
+        """Returns the problem's main Solution.
+
+        Raises:
+            ProblemConfigurationError - no/more than one main solution is found
+        """
+
+        from pygon.solution import Solution
+
+        if hasattr(self, "_main_solution"):
+            return self._main_solution
+
+        res = []
+
+        for i in self.get_sources(Solution.directory_name):
+            sol = Solution(name=i, problem=self)
+            sol.load()
+            if sol.tag.tag == "main":
+                res.append(sol)
+
+        if not res:
+            raise ProblemConfigurationError("No main solution found")
+
+        if len(res) > 1:
+            raise ProblemConfigurationError("More than one main solution found")
+
+        self._main_solution = res[0]
+        return self._main_solution
 
     def get_solution_tests(self):
         """Collects all of the SolutionTests from file system and

@@ -104,10 +104,12 @@ class Source(ABC):
     def get_resource_dirs(self):
         """Returns a list of resource directories in search order."""
 
-        return [
-            os.path.join(self.problem.root, "resources"),
-            resource_filename("pygon", os.path.join("data", "resources"))
-        ]
+        res = [resource_filename("pygon", os.path.join("data", "resources"))]
+
+        if self.problem:
+            res.insert(0, os.path.join(self.problem.root, "resources"))
+
+        return res
 
     @property
     def identifier(self):
@@ -178,10 +180,7 @@ class Source(ABC):
             CalledProcessError: if compiler returns non-zero exit code.
         """
 
-        logger.info("{problem} :: compiling {name}",
-                    problem=self.problem.internal_name,
-                    name=self.identifier
-                    )
+        logger.info("Compiling {name}", name=self.identifier)
 
         dirname = os.path.dirname(self.get_executable_path())
         os.makedirs(dirname, exist_ok=True)
