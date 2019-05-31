@@ -201,13 +201,13 @@ ANS}%
 \def\ShortProblemTitle{}
 \graphicspath{%s}
 \begin{problem}{%s}{%s}{%s}{%s}{%s}
+\renewcommand{\SAMPLES}{%s}
 \input{%s}
-%s
 \end{problem}
 """ % ("".join("{" + i + "}" for i in self.get_resource_dirs()),
        self.name,
        self.problem.input_file.statement_str("input", self.language),
        self.problem.output_file.statement_str("output", self.language),
        self.get_time_limit(), self.get_memory_limit(),
-       self.get_statement_path(),
-       self.get_tex_samples())
+       self.get_tex_samples(),
+       self.get_statement_path())

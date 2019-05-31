@@ -128,7 +128,16 @@ def edittests():
     prob.update_solution_tests(result)
 
 
+@click.command(help="Create a new statement")
+@click.option("-l", "--language", prompt="New statement's language (e.g. \"english\")")
+@click.option("-n", "--name", prompt="Full name of the problem in this language")
+def addstatement(language, name):
+    prob = get_problem()
+    prob.add_statement(language, name)
+
+
 cli.add_command(init)
 cli.add_command(build)
 cli.add_command(discover)
 cli.add_command(edittests)
+cli.add_command(addstatement)

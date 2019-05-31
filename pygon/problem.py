@@ -333,6 +333,49 @@ class Problem:
         for i in to_remove:
             os.remove(os.path.join(dirname, i))
 
+    def add_statement(self, lang, name):
+        """Add new statement.
+
+        Args:
+            lang: statement language.
+            name: name of the problem in that language.
+        """
+
+        root = os.path.join(self.root, "statements", lang)
+        if os.path.exists(root):
+            logger.error("{} already exists", root)
+            return False
+
+        os.makedirs(root, exist_ok=True)
+
+        with open(os.path.join(root, "name.txt"), "w") as f:
+            print(name, file=f)
+
+        with open(os.path.join(root, "problem.tex"), "w") as f:
+            print("""\
+% Write problem legend here
+
+\\InputFile
+
+% Write input format here
+
+\\OutputFile
+
+% Write output format here
+
+% Sample tests replace the following line, if you remove it,
+% they will not be displayed.
+
+\\SAMPLES
+
+\\Explanations
+
+% Write your explanations here. You can also remove this (or any other)
+% section entirely. It's up to you.
+""", file=f)
+
+        return True
+
     def build(self):
         """Build the problem verifying that:
 
