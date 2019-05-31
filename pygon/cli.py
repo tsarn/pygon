@@ -119,6 +119,16 @@ def discover():
     prob.discover_sources(Solution)
 
 
+@click.command(help="Manage tests: reorder, remove, add")
+def edittests():
+    prob = get_problem()
+    result = click.edit(prob.edit_solution_tests(), extension=".conf")
+    if not click.confirm("This is a possibly destructive action. Continue?"):
+        return
+    prob.update_solution_tests(result)
+
+
 cli.add_command(init)
 cli.add_command(build)
 cli.add_command(discover)
+cli.add_command(edittests)

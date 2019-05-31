@@ -143,8 +143,17 @@ class SolutionTest:
         with open(self.get_descriptor_path()) as desc:
             data = yaml.safe_load(desc.read())
 
-        self.sample = data.get('sample', False)
-        self.generate = data.get('generate')
+        self.sample = data.get("sample", False)
+        self.generate = data.get("generate")
+
+    def save(self):
+        """Save data about itself into the descriptor file."""
+
+        with open(self.get_descriptor_path(), "w") as desc:
+            data = dict(sample=self.sample)
+            if self.generate:
+                data["generate"] = self.generate
+            yaml.dump(data, desc, default_flow_style=False)
 
     def get_input_path(self):
         """Returns a path to the test's input data."""

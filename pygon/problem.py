@@ -235,6 +235,104 @@ class Problem:
 
         return res
 
+    def edit_solution_tests(self):
+        """Returns a editable multiline value for managing tests."""
+
+        res = """\
+# Managing tests of problem {problem}
+#
+# Each non-empty line of this file, except comments, which begin with '#'
+# signifies a test. Test may be either manually entered or generated.
+#
+# Manually entered tests are lines beginning with 'M', then flags,
+# then a path to the input file, relative to the problem root.
+#
+# Generated tests are lines beginning with 'G', then flags,
+# then generator command.
+#
+# List of flags:
+#   S - this test is a sample
+#
+# For example, following line means a manually entered test that is
+# included in the statements and is located at PROBLEMROOT/tests/01:
+#
+# MS tests/01
+#
+# Edit your tests, then save this file and exit the editor
+
+""".format(problem=self.internal_name)
+
+        lines = []
+
+        for test in self.get_solution_tests():
+            if test.generate:
+                line = "G"
+            else:
+                line = "M"
+
+            if test.sample:
+                line += "S"
+
+            line += " "
+
+            if test.generate:
+                line += test.generate
+            else:
+                line += os.path.join("tests", TEST_FORMAT.format(test.index))
+
+            lines.append(line)
+
+        return res + "\n".join(lines)
+
+    def update_solution_tests(self, text):
+        """Updates SolutionTests from editable text
+        (see edit_solution_tests).
+        """
+
+        tests = []
+        dirname = os.path.join(self.root, "tests")
+
+        for line in text.split("\n"):
+            l = line.strip()
+            if l.startswith("#") or not l:
+                continue
+            if " " not in l:
+                raise ValueError("Malformed line: '{}'".format(l))
+            flags = l[:l.find(" ")]
+            arg = l[l.find(" ")+1:]
+
+            test = dict(sample="S" in flags)
+
+            if flags[0] == "M":
+                with open(os.path.join(self.root, arg), 'rb') as f:
+                    test['data'] = f.read()
+            elif flags[0] == "G":
+                test['generate'] = arg
+            else:
+                raise ValueError("Malformed line: '{}'".format(l))
+
+            tests.append(test)
+
+        to_remove = set(os.listdir(dirname))
+
+        for i, test in enumerate(tests):
+            index = TEST_FORMAT.format(i + 1)
+            if 'data' in test:
+                to_remove.discard(index)
+            to_remove.discard(index + ".yaml")
+
+            obj = SolutionTest(index=i + 1, problem=self,
+                               sample=test['sample'],
+                               generate=test.get('generate'))
+
+            obj.save()
+            if 'data' in test:
+                with open(os.path.join(dirname, index), 'wb') as f:
+                    f.write(test['data'])
+
+        for i in to_remove:
+            os.remove(os.path.join(dirname, i))
+
     def build(self):
         """Build the problem verifying that:
 
