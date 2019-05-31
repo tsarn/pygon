@@ -19,12 +19,12 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-"""This module defines class for working with problems"""
+"""This module defines class for working with problems."""
 
 import os
+import subprocess
 
 import yaml
-import subprocess
 from loguru import logger
 
 from pygon.testcase import FileName, SolutionTest, Verdict
@@ -143,6 +143,20 @@ class Problem:
 
         return res
 
+    def get_statements(self):
+        """Returns list of all Statements."""
+
+        from pygon.statement import Statement
+
+        res = []
+
+        for lang in os.listdir(os.path.join(self.root, "statements")):
+            with open(os.path.join(self.root, "statements", lang, "name.txt")) as f:
+                name = f.read().strip()
+            res.append(Statement(problem=self, name=name, language=lang))
+
+        return res
+
     def get_main_solution(self):
         """Returns the problem's main Solution.
 
@@ -200,11 +214,11 @@ class Problem:
         return res
 
     def build(self):
-        """Build the problem verifying only that:
+        """Build the problem verifying that:
 
         - There is an active checker and it compiles
-        - All active validators compile
         - There is a main solution and it compiles
+        - All active validators compile
         - All tests are generated and valid
         - Main solution gets OK
 
@@ -254,6 +268,15 @@ class Problem:
                         verdict.verdict,
                         test.index,
                         verdict.comment
+                    ))
+
+        for stmt in self.get_statements():
+            try:
+                stmt.build()
+            except subprocess.CalledProcessError:
+                raise ProblemConfigurationError(
+                    "Failed to build {} statement. See '{}' for details".format(
+                        stmt.language, stmt.get_log_path()
                     ))
 
         logger.info("Problem {} built successfully".format(self.internal_name))

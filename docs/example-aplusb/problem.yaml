@@ -1,7 +1,7 @@
 internal_name: example-aplusb
 input_file: input.txt
 output_file: output.txt
-time_limit: 1000
-memory_limit: 256
+time_limit: 1.0
+memory_limit: 256.0
 active_checker: standard.lcmp
 active_validators: [standard.wfval]

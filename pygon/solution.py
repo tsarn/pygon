@@ -172,8 +172,6 @@ class Solution(Source):
             InvokeResult
         """
 
-        from pygon.problem import ProblemConfigurationError
-
         main_solution = self.problem.get_main_solution()
 
         logger.info("Judging {solution} on test {test}",
