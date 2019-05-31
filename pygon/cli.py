@@ -32,6 +32,7 @@ from pygon.problem import Problem, ProblemConfigurationError
 from pygon.checker import Checker
 from pygon.validator import Validator
 from pygon.generator import Generator
+from pygon.solution import Solution
 
 
 def get_problem():
@@ -109,5 +110,15 @@ def build():
         logger.error("Problem configuration error: {}", str(e))
 
 
+@click.command(help="Generate descriptors for items that don't have them")
+def discover():
+    prob = get_problem()
+    prob.discover_sources(Checker)
+    prob.discover_sources(Generator)
+    prob.discover_sources(Validator)
+    prob.discover_sources(Solution)
+
+
 cli.add_command(init)
 cli.add_command(build)
+cli.add_command(discover)

@@ -78,7 +78,7 @@ class Source(ABC):
 
         self.name = name
         self.problem = problem
-        self.lang = lang
+        self.lang = lang or Language.from_name(Language.autodetect(name))
 
     def get_source_path(self):
         """Returns path to source code file."""
@@ -165,6 +165,13 @@ class Source(ABC):
             data = yaml.safe_load(desc)
 
         self.lang = Language.from_name(data.get('language'))
+
+    def save(self):
+        """Save data about itself into the descriptor file."""
+
+        with open(self.get_descriptor_path(), "w") as desc:
+            data = yaml.dump(dict(language=self.lang.name),
+                             desc, default_flow_style=False)
 
     def get_descriptor_path(self):
         """Returns path to descriptor, where information

@@ -136,6 +136,15 @@ class Solution(Source):
         self.tag = SolutionTag(data.get("tag", "main"),
                                [Verdict(i) for i in data.get("verdicts", [])])
 
+    def save(self):
+        """See base class."""
+
+        with open(self.get_descriptor_path(), "w") as desc:
+            data = dict(language=self.lang.name, tag=self.tag.tag)
+            if self.tag.tag == "incorrect":
+                data["verdicts"] = self.tag.verdicts
+            data = yaml.dump(data, desc, default_flow_style=False)
+
     def invoke(self, test):
         """Invoke solution on a test (without running a checker).
 

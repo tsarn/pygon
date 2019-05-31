@@ -23,6 +23,7 @@
 
 import subprocess
 import shlex
+import os
 from abc import ABC, abstractmethod
 
 from pygon.config import CONFIG
@@ -60,6 +61,24 @@ class Language(ABC):
         """
 
     @staticmethod
+    def autodetect(name):
+        """Returns language appropriate for a file name.
+
+        Args:
+            name: file name (e.g. "source.cpp")
+
+        Returns:
+            string: language identifier
+        """
+
+        ext = os.path.splitext(name)[1]
+
+        for lang, cfg in CONFIG['languages'].items():
+            if ext in cfg.get('autodetect', []):
+                return lang
+        raise ValueError("Couldn't detect language for {}".format(name))
+
+    @staticmethod
     def from_name(name):
         """Returns a configured Language with specified name."""
 
@@ -71,6 +90,10 @@ class Language(ABC):
         execute_cmd = cfg.get('execute', '{exe}')
 
         class CustomLanguage(Language):
+            @property
+            def name(self):
+                return name
+
             def get_compile_command(self, src, exe, res):
                 if not compile_cmd:
                     return None

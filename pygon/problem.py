@@ -143,6 +143,28 @@ class Problem:
 
         return res
 
+    def discover_sources(self, cls):
+        """Discover sources that lack descriptors and create them.
+
+        Args:
+            cls: a Source subclass
+        """
+
+        dirname = os.path.join(self.root, cls.directory_name)
+        lst = set(os.listdir(dirname))
+        for src in lst:
+            if src.endswith(".yaml"):
+                continue
+
+            base = os.path.splitext(src)[0]
+            if '{}.yaml'.format(base) in lst:
+                continue
+
+            logger.info("{} {} discovered", cls.__name__, src)
+
+            obj = cls(problem=self, name=src)
+            obj.save()
+
     def get_statements(self):
         """Returns list of all Statements."""
 

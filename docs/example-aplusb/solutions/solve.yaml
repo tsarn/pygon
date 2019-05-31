@@ -1,2 +1,2 @@
-language: c++14
+language: c++11
 tag: main
