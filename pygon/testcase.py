@@ -32,20 +32,7 @@ from pygon.generator import Generator
 from pygon.config import TEST_FORMAT, BUILD_DIR
 
 class Verdict(Enum):
-    """Verdict for judgement.
-
-    Values:
-        OK: test passed / validation ok.
-        TIME_LIMIT_EXCEEDED: self-explanatory.
-        MEMORY_LIMIT_EXCEEDED: self-explanatory.
-        REAL_TIME_LIMIT_EXCEEDED: self-explanatory.
-        RUNTIME_ERROR: non-zero exit code for solution.
-        VALIDATION_FAILED: non-zero exit code for validator.
-        CHECK_FAILED: unexpected exit code for checker.
-        WRONG_ANSWER: self-explanatory.
-        PRESENTATION_ERROR: self-explanatory.
-    """
-
+    """Verdict for a judgement."""
 
     OK = "OK"
     TIME_LIMIT_EXCEEDED = "TL"

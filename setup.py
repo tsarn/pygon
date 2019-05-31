@@ -23,12 +23,13 @@ VERSION = '0.1.0'
 
 # What packages are required for this module to be executed?
 REQUIRED = [
-    'pyyaml', 'loguru', 'appdirs'
+    'pyyaml', 'loguru', 'appdirs', 'click'
 ]
 
 # What packages are optional?
 EXTRAS = {
     'running tests': ['pytest'],
+    'building docs': ['sphinx'],
 }
 
 # The rest you shouldn't have to touch too much :)

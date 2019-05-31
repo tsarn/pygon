@@ -123,7 +123,7 @@ class Problem:
             directory: directory where to look for the source (e.g. "solutions")
 
         Returns:
-            list of source filenames (e.g. ["solve_ok.cpp", "solve_wa.cpp"])
+            list: source filenames (e.g. ["solve_ok.cpp", "solve_wa.cpp"])
         """
 
         res = []

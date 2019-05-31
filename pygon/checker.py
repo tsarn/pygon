@@ -69,7 +69,7 @@ class Checker(Source):
             ans: path to the correct solution's output on this test.
 
         Returns:
-            a CheckerVerdict instance containing the judgement.
+            CheckerVerdict: instance containing the judgement.
         """
 
         cmd = self.get_execute_command()

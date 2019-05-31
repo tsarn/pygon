@@ -39,11 +39,9 @@ class UnknownSourceError(Exception):
 class Source(ABC):
     """A source file.
 
-    Class attributes:
+    Attributes:
         directory_name: directory name in problem hierarchy.
         standard_instances: list of identifiers of standard sources.
-
-    Attributes:
         standard: None if custom source, otherwise an identifier of standard
                   source (e.g. "lcmp").
         problem: the source's Problem.

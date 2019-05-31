@@ -43,8 +43,7 @@ class Language(ABC):
             res: list of resource directories.
 
         Returns:
-            None or compilation command as a list of strings, for example:
-            ["gcc", "-std=c99", "-O2", "/tmp/test.c", "-o", "/tmp/test"]
+            None or compilation command as a list of strings.
         """
 
     @abstractmethod
@@ -56,8 +55,7 @@ class Language(ABC):
             exe: absolute path to executable.
 
         Returns:
-            None or execution command as a list of strings, for example:
-            ["python3", "/tmp/test.py"].
+            None or execution command as a list of strings.
         """
 
     @staticmethod
@@ -68,7 +66,7 @@ class Language(ABC):
             name: file name (e.g. "source.cpp")
 
         Returns:
-            string: language identifier
+            str: language identifier
         """
 
         ext = os.path.splitext(name)[1]

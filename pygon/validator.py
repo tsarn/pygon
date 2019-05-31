@@ -61,7 +61,7 @@ class Validator(Source):
             path: path to the test's input file.
 
         Returns:
-            a ValidatorVerdict instance containing the judgement.
+            ValidatorVerdict: instance containing the judgement.
         """
 
         cmd = self.get_execute_command()
