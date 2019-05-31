@@ -1,7 +1,7 @@
 # Pygon
 
 Pygon is a console application designed to make it easier to prepare
-programming contests. It addressed some gripes I (and many others apparently) have with
+programming contests. It addresses some gripes I (and many others apparently) have with
 [Polygon](https://polygon.codeforces.com). Note, that Pygon isn't related to Polygon in any way.
 
 ## Requirements
@@ -21,7 +21,7 @@ What I personally like about Pygon more:
    no internet connection because cellphone tower is not working for some reason.
    Stuff like this happens far more often than you'd think and it's never pleasant.
  - It doesn't impose a version control system on you.
-   Sometimes, I just want to use git, you know? It's easier to share,
+   Sometimes I just want to use git, you know? It's easier to share,
    easier to reason about and supports so much more features than Polygon's VCS.
  - You don't have to wait for ages for the package to be built (yes, even with verification!)
  - All the files are stored locally and human-readable.
