@@ -15,8 +15,6 @@ more-itertools==7.0.0
 pluggy==0.12.0
 py==1.8.0
 Pygments==2.4.2
-# Editable Git install with no remote (pygon==0.1.0)
--e /home/tsarn/Coding/pygon
 pylint==2.3.1
 pytest==4.5.0
 PyYAML==5.1
