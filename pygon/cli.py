@@ -85,8 +85,8 @@ input_file: standard_io
 # Output file name, or "standard_io" if writing to standard output
 output_file: standard_io
 
-# Time limit per test in milliseconds
-time_limit: 1000
+# Time limit per test in seconds
+time_limit: 1.0
 
 # Memory limit per test in MiB
 memory_limit: 256
