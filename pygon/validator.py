@@ -66,8 +66,9 @@ class Validator(Source):
 
         cmd = self.get_execute_command()
         cmd += [path]
-        res = subprocess.run(cmd, stderr=subprocess.PIPE,
-                             universal_newlines=True)
+        with open(path, 'rb') as testf:
+            res = subprocess.run(cmd, stderr=subprocess.PIPE,
+                                 stdin=testf, universal_newlines=True)
         verdict = Verdict.VALIDATION_FAILED
         if res.returncode == 0:
             verdict = Verdict.OK

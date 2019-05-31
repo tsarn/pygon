@@ -89,16 +89,18 @@ class SolutionTag:
         return verdict in self.verdicts
 
     def check_all(self, verdicts):
-        """Checks if a result on all tests is valid,
-        assuming result is valid on each test individually.
+        """Checks if a result on all tests is valid.
 
         Args:
             verdicts: a list of Verdicts, which the solution got on the tests.
 
         Returns:
             True if solution is valid on the test set as a whole,
-            assuming it is valid on each test individually, and False otherwise.
+            and False otherwise.
         """
+
+        if not all([self.check_one(i) for i in verdicts]):
+            return False
 
         if self.tag != "incorrect":
             return True
@@ -172,9 +174,6 @@ class Solution(Source):
 
         from pygon.problem import ProblemConfigurationError
 
-        if not self.problem.active_checker:
-            raise ProblemConfigurationError("No active checker set")
-
         main_solution = self.problem.get_main_solution()
 
         logger.info("Judging {solution} on test {test}",
@@ -195,4 +194,3 @@ class Solution(Source):
         res.comment = chk.comment
 
         return res
-

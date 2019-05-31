@@ -28,7 +28,7 @@ import re
 import click
 from loguru import logger
 
-from pygon.problem import Problem
+from pygon.problem import Problem, ProblemConfigurationError
 from pygon.checker import Checker
 from pygon.validator import Validator
 from pygon.generator import Generator
@@ -103,17 +103,10 @@ active_validators: [standard.wfval]
 def build():
     prob = get_problem()
 
-    if prob.active_checker:
-        prob.active_checker.ensure_compile()
-
-    for i in prob.active_validators:
-        i.ensure_compile()
-
-    main_solution = prob.get_main_solution()
-
-    for test in prob.get_solution_tests():
-        test.build()
-        main_solution.judge(test)
+    try:
+        prob.build()
+    except ProblemConfigurationError as e:
+        logger.error("Problem configuration error: {}", str(e))
 
 
 cli.add_command(init)

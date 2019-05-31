@@ -24,8 +24,10 @@
 import os
 
 import yaml
+import subprocess
+from loguru import logger
 
-from pygon.testcase import FileName, SolutionTest
+from pygon.testcase import FileName, SolutionTest, Verdict
 from pygon.config import TEST_FORMAT
 
 
@@ -196,3 +198,62 @@ class Problem:
         res.sort(key=lambda test: test.index)
 
         return res
+
+    def build(self):
+        """Build the problem verifying only that:
+
+        - There is an active checker and it compiles
+        - All active validators compile
+        - There is a main solution and it compiles
+        - All tests are generated and valid
+        - Main solution gets OK
+
+        Should be ran prior to verification.
+        """
+
+        if not self.active_checker:
+            raise ProblemConfigurationError("Active checker is not set")
+
+        try:
+            self.active_checker.ensure_compile()
+        except subprocess.CalledProcessError:
+            raise ProblemConfigurationError("Active checker compilation failed")
+
+        main_solution = self.get_main_solution()
+
+        try:
+            main_solution.ensure_compile()
+        except subprocess.CalledProcessError:
+            raise ProblemConfigurationError("Main solution compilation failed")
+
+        tests = self.get_solution_tests()
+
+        for test in tests:
+            try:
+                test.build()
+            except subprocess.CalledProcessError:
+                raise ProblemConfigurationError("Generator compilation failed")
+
+            for validator in self.active_validators:
+                verdict = validator.validate(test.get_input_path())
+                if verdict.verdict != Verdict.OK:
+                    raise ProblemConfigurationError(
+                        "Validator {} rejects test {}: {}".format(
+                            validator.identifier,
+                            test.index,
+                            verdict.comment
+                        ))
+
+        for test in tests:
+            verdict = main_solution.judge(test)
+
+            if not main_solution.tag.check_one(verdict.verdict):
+                raise ProblemConfigurationError(
+                    "Main solution {} gets {} on test {}: {}".format(
+                        main_solution.identifier,
+                        verdict.verdict,
+                        test.index,
+                        verdict.comment
+                    ))
+
+        logger.info("Problem {} built successfully".format(self.internal_name))
