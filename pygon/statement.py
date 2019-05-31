@@ -155,6 +155,40 @@ class Statement:
         logger.info("Building {} statement", self.language)
         subprocess.run(cmd, cwd=root, check=True, stdout=subprocess.DEVNULL)
 
+    def get_tex_samples(self):
+        """Returns sample tests in TeX source code form."""
+
+        tests = []
+        main_solution = self.problem.get_main_solution()
+
+        for test in self.problem.get_solution_tests():
+            if not test.sample:
+                continue
+
+            with open(test.get_input_path()) as f:
+                inp = f.read()
+
+            with open(test.get_output_path(main_solution.identifier)) as f:
+                ans = f.read()
+
+            tests.append((inp, ans))
+
+        if not tests:
+            return ""
+
+        res = "\n\\Examples\n"
+
+        for inp, ans in tests:
+            res += r"""
+\begin{example}
+\exmp{%
+INP}{%
+ANS}%
+\end{example}
+""".replace("INP", inp).replace("ANS", ans)
+
+        return res
+
     def get_tex_statement(self):
         """Returns a TeX code to include the statement."""
 
@@ -163,10 +197,12 @@ class Statement:
 \graphicspath{%s}
 \begin{problem}{%s}{%s}{%s}{%s}{%s}
 \input{%s}
+%s
 \end{problem}
 """ % ("".join("{" + i + "}" for i in self.get_resource_dirs()),
        self.name,
        self.problem.input_file.statement_str("input", self.language),
        self.problem.output_file.statement_str("output", self.language),
        self.get_time_limit(), self.get_memory_limit(),
-       self.get_statement_path())
+       self.get_statement_path(),
+       self.get_tex_samples())
