@@ -6,13 +6,28 @@
 Welcome to Pygon's documentation!
 =================================
 
+Tutorials
+---------
+
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+   tutorials
+
+User Reference
+--------------
+
+.. toctree::
+   standard
+
+
+API Reference
+-------------
+
+.. toctree::
+   modules
 
 
 Indices and tables
-==================
+------------------
 
 * :ref:`genindex`
 * :ref:`modindex`
