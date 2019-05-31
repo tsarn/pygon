@@ -105,6 +105,12 @@ class Invoke:
             time_used = log['user'] + log['system']
             memory_used = log['memory'] / 1024
 
+            if verdict == Verdict.OK:
+                if time_used > self.time_limit:
+                    verdict = Verdict.TIME_LIMIT_EXCEEDED
+                elif memory_used > self.memory_limit:
+                    verdict = Verdict.MEMORY_LIMIT_EXCEEDED
+
             return InvokeResult(verdict, time_used, memory_used)
 
     @contextmanager
