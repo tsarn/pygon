@@ -52,7 +52,7 @@ languages:
     c99:
         compile: "gcc -Wall -O2 -lm -std=c99 {src} -o {exe} {inc}"
     c11:
-        compile: "gcc -Wall -O2 -lm -std=c99 {src} -o {exe} {inc}"
+        compile: "gcc -Wall -O2 -lm -std=c11 {src} -o {exe} {inc}"
         autodetect: [".c"]
 
     python2:
