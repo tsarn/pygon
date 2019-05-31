@@ -110,7 +110,7 @@ def build():
         logger.error("Problem configuration error: {}", str(e))
 
 
-@click.command(help="Generate descriptors for items that don't have them")
+@click.command(help="Generate descriptors for sources that don't have them")
 def discover():
     prob = get_problem()
     prob.discover_sources(Checker)

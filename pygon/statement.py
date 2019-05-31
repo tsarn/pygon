@@ -176,16 +176,21 @@ class Statement:
         if not tests:
             return ""
 
-        res = "\n\\Examples\n"
+        res = r"""
+\Examples
+\begin{example}
+"""
 
         for inp, ans in tests:
-            res += r"""
-\begin{example}
-\exmp{%
+            res += """\
+\\exmp{%
 INP}{%
 ANS}%
-\end{example}
 """.replace("INP", inp).replace("ANS", ans)
+
+        res += """\
+\\end{example}
+"""
 
         return res
 
