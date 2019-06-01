@@ -24,7 +24,7 @@
 import os
 
 import yaml
-from appdirs import user_config_dir
+from click import get_app_dir
 
 BUILD_DIR = "pygon-build"
 TEST_FORMAT = "{:02d}"
@@ -66,7 +66,7 @@ languages:
 def load_config():
     """Reads config as a Python object. Creates config file if missing."""
 
-    path = os.path.join(user_config_dir("pygon"), "pygon.yaml")
+    path = os.path.join(get_app_dir("pygon"), "pygon.yaml")
 
     os.makedirs(os.path.dirname(path), exist_ok=True)
 

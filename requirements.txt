@@ -1,5 +1,4 @@
-setuptools==41.0.1
+setuptools
 loguru==0.2.5
-appdirs==1.4.3
 Click==7.0
 PyYAML==5.1

@@ -23,7 +23,7 @@ VERSION = '0.1.0'
 
 # What packages are required for this module to be executed?
 REQUIRED = [
-    'pyyaml', 'loguru', 'appdirs', 'click'
+    'pyyaml', 'loguru', 'click', 'setuptools'
 ]
 
 # What packages are optional?
