@@ -23,12 +23,13 @@ What I personally like about Pygon more:
  - It doesn't impose a version control system on you.
    Sometimes I just want to use git, you know? It's easier to share,
    easier to reason about and supports so much more features than Polygon's VCS.
+ - It has a single source of truth for everything. Remember Polygon generator scripts?
  - You don't have to wait for ages for the package to be built (yes, even with verification!)
  - All the files are stored locally and human-readable.
    So convenient! Especially for people who mainly use terminal apps.
    No need to copy and paste code into your browser.
  - It's pretty. Colors in the terminal are just so freaking sexy.
- - It's written by me (kinda biased, but whatever).
+ - It's open source.
  - More features coming (I've been working on only for three days when I wrote this README, give me a break)
 
 What I personally like about Polygon more
