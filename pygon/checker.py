@@ -84,4 +84,4 @@ class Checker(Source):
         elif res.returncode == 2:
             verdict = Verdict.PRESENTATION_ERROR
 
-        return CheckerVerdict(verdict, res.stderr)
+        return CheckerVerdict(verdict, res.stderr.strip())
