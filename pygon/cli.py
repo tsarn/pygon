@@ -26,6 +26,7 @@ import sys
 import re
 
 import click
+from tabulate import tabulate
 from loguru import logger
 
 from pygon.problem import Problem, ProblemConfigurationError
@@ -136,8 +137,72 @@ def addstatement(language, name):
     prob.add_statement(language, name)
 
 
+@click.command(help="Run solutions on tests")
+@click.option("-t", "--tests", help="Comma-separated subset of tests to run (default: all)")
+@click.option("-s", "--solutions", help="Comma-separated subset of solutions to run (default: all)")
+def invoke(tests=None, solutions=None):
+    prob = get_problem()
+
+    try:
+        prob.build(statements=False)
+    except ProblemConfigurationError as e:
+        logger.error("Problem configuration error: {}", str(e))
+        sys.exit(1)
+
+    if not tests:
+        tests = prob.get_solution_tests()
+    else:
+        res = []
+        for i in tests.split(","):
+            if "-" in i:
+                begin, end = map(int, i.split("-"))
+                res += list(range(begin, end+1))
+            else:
+                res.append(int(i))
+        tests = []
+        res = set(res)
+        for test in prob.get_solution_tests():
+            if test.index in res:
+                tests.append(test)
+
+    if not solutions:
+        solutions = Solution.all(prob)
+    else:
+        solutions = [Solution.from_identifier(i, prob) for i in solutions.split(",")]
+
+    header = ["Test"] + [i.name for i in solutions]
+    data = []
+    verdicts = [[] for _ in solutions]
+
+    for test in tests:
+        data.append([str(test.index)])
+        for i, solution in enumerate(solutions):
+            res = solution.judge(test)
+            verdicts[i].append(res.verdict)
+            s = click.style(res.verdict.value, fg="green" if
+                            solution.tag.check_one(res.verdict) else "red",
+                            bold=True)
+            s += " {} ms / {} MiB".format(round(res.time * 1000), round(res.memory))
+            data[-1].append(s)
+
+    data.append(["Tag correct?"])
+    for i, solution in enumerate(solutions):
+        valid = solution.tag.check_all(verdicts[i])
+        if valid:
+            s = click.style("YES", fg="green", bold=True)
+        else:
+            s = click.style("NO", fg="red", bold=True)
+        data[-1].append(s)
+
+    click.echo(tabulate(data, header, tablefmt="presto"))
+
 cli.add_command(init)
 cli.add_command(build)
 cli.add_command(discover)
 cli.add_command(edittests)
 cli.add_command(addstatement)
+cli.add_command(invoke)
+
+
+def main():
+    cli()

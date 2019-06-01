@@ -23,7 +23,7 @@ VERSION = '0.1.0'
 
 # What packages are required for this module to be executed?
 REQUIRED = [
-    'pyyaml', 'loguru', 'click', 'setuptools'
+    'pyyaml', 'loguru', 'click', 'setuptools', 'tabulate'
 ]
 
 # What packages are optional?
@@ -107,7 +107,7 @@ setup(
     url=URL,
     packages=['pygon'],
     entry_points={
-        'console_scripts': ['pygon=pygon.cli:cli'],
+        'console_scripts': ['pygon=pygon.cli:main'],
     },
     install_requires=REQUIRED,
     extras_require=EXTRAS,

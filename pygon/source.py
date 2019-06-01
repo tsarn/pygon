@@ -202,13 +202,19 @@ class Source(ABC):
         """
 
         src_time = os.path.getmtime(self.get_source_path())
+
+        if self.standard:
+            desc_time = float("-inf")
+        else:
+            desc_time = os.path.getmtime(self.get_descriptor_path())
+
         try:
             exe_time = os.path.getmtime(self.get_executable_path())
         except OSError:
+            exe_time = float("-inf")
+
+        if exe_time < max(desc_time, src_time):
             self.compile()
-        else:
-            if exe_time < src_time:
-                self.compile()
 
     def get_execute_command(self):
         """Returns a command to execute the source.

@@ -21,7 +21,7 @@
 
 """This module is the entry point."""
 
-from pygon.cli import cli
+from pygon.cli import main
 
 if __name__ == "__main__":
-    cli()
+    main()

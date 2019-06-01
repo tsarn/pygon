@@ -402,7 +402,7 @@ class Problem:
 
         return True
 
-    def build(self):
+    def build(self, statements=True):
         """Build the problem verifying that:
 
         - There is an active checker and it compiles
@@ -459,13 +459,14 @@ class Problem:
                         verdict.comment
                     ))
 
-        for stmt in self.get_statements():
-            try:
-                stmt.build()
-            except subprocess.CalledProcessError:
-                raise ProblemConfigurationError(
-                    "Failed to build {} statement. See '{}' for details".format(
-                        stmt.language, stmt.get_log_path()
-                    ))
+        if statements:
+            for stmt in self.get_statements():
+                try:
+                    stmt.build()
+                except subprocess.CalledProcessError:
+                    raise ProblemConfigurationError(
+                        "Failed to build {} statement. See '{}' for details".format(
+                            stmt.language, stmt.get_log_path()
+                        ))
 
         logger.info("Problem {} built successfully".format(self.internal_name))

@@ -28,7 +28,7 @@ from loguru import logger
 
 from pygon.language import Language
 from pygon.source import Source
-from pygon.invoke import Invoke
+from pygon.invoke import Invoke, InvokeResult
 from pygon.testcase import Verdict
 
 
@@ -171,15 +171,51 @@ class Solution(Source):
                 with invoke.with_stdout(self.problem.output_file, out):
                     return invoke.run()
 
-    def judge(self, test):
-        """Runs and judges solution on a test.
+    def need_judge(self, test):
+        """Do we have the freshest possible verdict on running solution
+        on this test?
 
         Args:
-            test: a SolutionTest.
+            test (SolutionTest): the test.
+
+        Returns:
+            bool: if True then we need to rejudge.
+        """
+
+        deps = [
+            test.get_input_path(),
+            test.get_output_path(self.problem.get_main_solution().identifier),
+            self.get_source_path(),
+            self.get_descriptor_path(),
+            self.problem.active_checker.get_executable_path()
+        ]
+
+        verdict_path = test.get_verdict_path(self.identifier)
+
+        try:
+            self_time = os.path.getmtime(verdict_path)
+        except OSError:
+            return True
+
+        for i in deps:
+            if self_time < os.path.getmtime(i):
+                return True
+
+        return False
+
+    def judge(self, test):
+        """Runs and judges solution on a test if neccessary.
+
+        Args:
+            test (SolutionTest): the test.
 
         Returns:
             InvokeResult
         """
+
+        if not self.need_judge(test):
+            with open(test.get_verdict_path(self.identifier)) as f:
+                return InvokeResult.from_dict(yaml.safe_load(f))
 
         main_solution = self.problem.get_main_solution()
 
@@ -189,15 +225,16 @@ class Solution(Source):
 
         res = self.invoke(test)
 
-        if res.verdict != Verdict.OK:
-            return res
+        if res.verdict == Verdict.OK:
+            inp = test.get_input_path()
+            out = test.get_output_path(self.identifier)
+            ans = test.get_output_path(main_solution.identifier)
 
-        inp = test.get_input_path()
-        out = test.get_output_path(self.identifier)
-        ans = test.get_output_path(main_solution.identifier)
+            chk = self.problem.active_checker.judge(inp, out, ans)
+            res.verdict = chk.verdict
+            res.comment = chk.comment
 
-        chk = self.problem.active_checker.judge(inp, out, ans)
-        res.verdict = chk.verdict
-        res.comment = chk.comment
+        with open(test.get_verdict_path(self.identifier), "w") as f:
+            yaml.dump(res.to_dict(), f, default_flow_style=False)
 
         return res

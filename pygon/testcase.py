@@ -164,6 +164,17 @@ class SolutionTest:
         return os.path.join(self.problem.root, BUILD_DIR, "outputs",
                             identifier, TEST_FORMAT.format(self.index))
 
+    def get_verdict_path(self, identifier):
+        """Returns a path to the verdict.
+
+        Args:
+            identifier (str): identifier of `Solution` whose
+                              verdict to point to.
+        """
+
+        return os.path.join(self.problem.root, BUILD_DIR, "outputs",
+                            identifier, TEST_FORMAT.format(self.index) + ".yaml")
+
     def build(self):
         """If a test is not manual and needs generating, generate it."""
 
@@ -174,7 +185,7 @@ class SolutionTest:
         gen = Generator.from_identifier(args.pop(0), self.problem)
         gen.ensure_compile()
 
-        gen_time = os.path.getmtime(gen.get_source_path())
+        gen_time = os.path.getmtime(gen.get_executable_path())
         desc_time = os.path.getmtime(self.get_descriptor_path())
         try:
             res_time = os.path.getmtime(self.get_input_path())

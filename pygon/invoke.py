@@ -44,11 +44,26 @@ class InvokeResult:
         comment: checker's comment
     """
 
-    def __init__(self, verdict, time, memory):
+    def __init__(self, verdict, time, memory, comment=""):
         self.verdict = verdict
         self.time = time
         self.memory = memory
-        self.comment = ""
+        self.comment = comment
+
+    def to_dict(self):
+        return dict(
+            verdict=self.verdict.value,
+            time=self.time,
+            memory=self.memory,
+            comment=self.comment
+        )
+
+    @classmethod
+    def from_dict(cls, data):
+        return cls(verdict=Verdict(data["verdict"]),
+                   time=data["time"],
+                   memory=data["memory"],
+                   comment=data["comment"])
 
 
 class Invoke:
