@@ -110,15 +110,20 @@ class Invoke:
                                stderr=subprocess.DEVNULL, cwd=self.cwd,
                                timeout=5 * self.time_limit, check=True)
             except subprocess.TimeoutExpired:
-                verdict = Verdict.REAL_TIME_LIMIT_EXCEEDED
+                verdict = Verdict.TIME_LIMIT_EXCEEDED
             except subprocess.CalledProcessError:
                 verdict = Verdict.RUNTIME_ERROR
 
             with open(logpath) as logf:
                 log = yaml.safe_load(logf.read())
 
-            time_used = log['user'] + log['system']
-            memory_used = log['memory'] / 1024
+            if verdict == Verdict.TIME_LIMIT_EXCEEDED:
+                # killed by timeout, won't find anything useful
+                time_used = self.time_limit
+                memory_used = 0
+            else:
+                time_used = log['user'] + log['system']
+                memory_used = log['memory'] / 1024
 
             if verdict == Verdict.OK:
                 if time_used > self.time_limit:
