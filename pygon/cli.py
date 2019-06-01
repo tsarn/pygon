@@ -102,11 +102,13 @@ active_validators: [standard.wfval]
 
 
 @click.command(help="Build problem")
-def build():
+@click.option("--statements/--no-statements", help="Build statements?",
+              default=True, show_default=True)
+def build(statements):
     prob = get_problem()
 
     try:
-        prob.build()
+        prob.build(statements=statements)
     except ProblemConfigurationError as e:
         logger.error("Problem configuration error: {}", str(e))
 
