@@ -24,6 +24,7 @@
 import os
 import sys
 import re
+import tempfile
 
 import click
 from tabulate import tabulate
@@ -34,6 +35,7 @@ from pygon.checker import Checker
 from pygon.validator import Validator
 from pygon.generator import Generator
 from pygon.solution import Solution
+from pygon.testcase import SolutionTest, expand_generator_command
 
 
 def get_problem():
@@ -55,8 +57,18 @@ def get_problem():
 
 
 @click.group()
-def cli():
-    pass
+@click.option("-v", "--verbose", count=True, help="Show more output")
+def cli(verbose):
+    level = "SUCCESS"
+    if verbose == 1:
+        level = "INFO"
+    elif verbose > 1:
+        level = "DEBUG"
+
+    logger.add(lambda x: click.echo(x, nl=False, err=True),
+               level=level,
+               format=" <level>{level:<8}</level> <level>{message}</level>",
+               colorize=True)
 
 
 @click.command(help="Create a new problem")
@@ -198,13 +210,75 @@ def invoke(tests=None, solutions=None):
 
     click.echo(tabulate(data, header, tablefmt="presto"))
 
+
+@click.command(help="Stress-test solutions for tag violations")
+@click.option("-s", "--solutions", help="Comma-separated subset of solutions to run (default: all except main)")
+@click.argument("command")
+def stress(command, solutions):
+    prob = get_problem()
+
+    try:
+        prob.build(statements=False)
+    except ProblemConfigurationError as e:
+        logger.error("Problem configuration error: {}", str(e))
+        sys.exit(1)
+
+    if not solutions:
+        solutions = [i for i in Solution.all(prob) if i.tag.tag != "main"]
+    else:
+        solutions = [Solution.from_identifier(i, prob) for i in solutions.split(",")]
+
+    if not solutions:
+        logger.warning("No solutions to stress")
+        return
+
+    commands = expand_generator_command(command)
+
+    offenders = {}
+    verdicts = {}
+
+    for solution in solutions:
+        offenders[solution.name] = None
+        verdicts[solution.name] = set()
+
+    main_solution = prob.get_main_solution()
+
+    with tempfile.TemporaryDirectory() as dirname:
+        with click.progressbar(commands) as bar:
+            for cmd in bar:
+                test = SolutionTest(problem=prob, generate=cmd,
+                                    dirname="/tmp/kek")
+                test.build()
+                main_solution.judge(test)
+                failed = set()
+                for i, solution in enumerate(solutions):
+                    res = solution.judge(test)
+                    verdicts[solution.name].add(res.verdict)
+                    if not solution.tag.check_one(res.verdict):
+                        offenders[solution.name] = cmd
+                        failed.add(i)
+                solutions = [x for i, x in enumerate(solutions) if i not in failed]
+                if not solutions:
+                    break
+
+    for solution, cmd in offenders.items():
+        click.echo("{} displayed verdicts: ".format(click.style(solution, bold=True)), nl=False)
+        click.echo(", ".join([i.styled for i in verdicts[solution]]), nl=False)
+        if cmd is None:
+            click.echo(" (no counterexample found)")
+        else:
+            click.echo(" (found counterexample: {})".format(cmd))
+
+
 cli.add_command(init)
 cli.add_command(build)
 cli.add_command(discover)
 cli.add_command(edittests)
 cli.add_command(addstatement)
 cli.add_command(invoke)
+cli.add_command(stress)
 
 
 def main():
+    logger.remove()
     cli()

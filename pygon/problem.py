@@ -469,4 +469,4 @@ class Problem:
                             stmt.language, stmt.get_log_path()
                         ))
 
-        logger.info("Problem {} built successfully".format(self.internal_name))
+        logger.success("Problem {} built successfully".format(self.internal_name))

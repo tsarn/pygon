@@ -27,6 +27,7 @@ import itertools
 from enum import Enum
 
 import yaml
+import click
 from loguru import logger
 
 from pygon.generator import Generator
@@ -43,6 +44,17 @@ class Verdict(Enum):
     CHECK_FAILED = "CF"
     WRONG_ANSWER = "WA"
     PRESENTATION_ERROR = "PE"
+
+    @property
+    def styled(self):
+        """Return ANSI-colored name of verdict."""
+
+        color = "red"
+
+        if self == Verdict.OK:
+            color = "green"
+
+        return click.style(self.name, bold=True, fg=color)
 
 
 class FileName:
@@ -102,7 +114,8 @@ class SolutionTest:
     or generated using a generator.
     """
 
-    def __init__(self, index, problem=None, sample=False, generate=None):
+    def __init__(self, index=None, problem=None, sample=False, generate=None,
+                 dirname=None):
         """Construct a SolutionTest.
 
         Args:
@@ -111,12 +124,15 @@ class SolutionTest:
             sample: whether to use the test in the samples.
             generate: None if test is manually entered or a string,
                       containing generation command (e.g. "gen 1 2 3").
+            dirname: None if test is a normal test, or path to
+                     temporary directory if test is a part of stress run.
         """
 
         self.index = index
         self.problem = problem
         self.sample = sample
         self.generate = generate
+        self.dirname = dirname
 
     def get_descriptor_path(self):
         """Returns a path to the test's descriptor."""
@@ -145,6 +161,9 @@ class SolutionTest:
     def get_input_path(self):
         """Returns a path to the test's input data."""
 
+        if self.dirname:
+            return os.path.join(self.dirname, "input")
+
         if not self.generate:
             return os.path.join(self.problem.root, "tests",
                                 TEST_FORMAT.format(self.index))
@@ -160,6 +179,9 @@ class SolutionTest:
                               output data to point to.
         """
 
+        if self.dirname:
+            return os.path.join(self.dirname, "{}.out".format(identifier))
+
         return os.path.join(self.problem.root, BUILD_DIR, "outputs",
                             identifier, TEST_FORMAT.format(self.index))
 
@@ -170,6 +192,9 @@ class SolutionTest:
             identifier (str): identifier of `Solution` whose
                               verdict to point to.
         """
+
+        if self.dirname:
+            return os.path.join(self.dirname, "{}.yaml".format(identifier))
 
         return os.path.join(self.problem.root, BUILD_DIR, "outputs",
                             identifier, TEST_FORMAT.format(self.index) + ".yaml")
@@ -184,15 +209,17 @@ class SolutionTest:
         gen = Generator.from_identifier(args.pop(0), self.problem)
         gen.ensure_compile()
 
-        gen_time = os.path.getmtime(gen.get_executable_path())
-        desc_time = os.path.getmtime(self.get_descriptor_path())
-        try:
-            res_time = os.path.getmtime(self.get_input_path())
-        except OSError:
-            res_time = float("-inf")
+        if not self.dirname:
+            gen_time = os.path.getmtime(gen.get_executable_path())
+            desc_time = os.path.getmtime(self.get_descriptor_path())
+            try:
+                res_time = os.path.getmtime(self.get_input_path())
+            except OSError:
+                res_time = float("-inf")
 
-        if res_time < max(gen_time, desc_time):
-            logger.info("Generating test {index}", index=self.index)
+        if self.dirname or res_time < max(gen_time, desc_time):
+            if self.index:
+                logger.info("Generating test {index}", index=self.index)
             dirname = os.path.dirname(self.get_input_path())
             os.makedirs(dirname, exist_ok=True)
             gen.generate(self.get_input_path(), args)
