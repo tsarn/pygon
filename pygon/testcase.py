@@ -165,20 +165,27 @@ class SolutionTest:
                             identifier, TEST_FORMAT.format(self.index))
 
     def build(self):
-        """If a test is not manual, generates it."""
+        """If a test is not manual and needs generating, generate it."""
 
         if not self.generate:
             return
 
-        logger.info("Generating test {index}", index=self.index)
-
-        dirname = os.path.dirname(self.get_input_path())
-        os.makedirs(dirname, exist_ok=True)
-
         args = shlex.split(self.generate)
         gen = Generator.from_identifier(args.pop(0), self.problem)
         gen.ensure_compile()
-        gen.generate(self.get_input_path(), args)
+
+        gen_time = os.path.getmtime(gen.get_source_path())
+        desc_time = os.path.getmtime(self.get_descriptor_path())
+        try:
+            res_time = os.path.getmtime(self.get_input_path())
+        except OSError:
+            res_time = float("-inf")
+
+        if res_time < max(gen_time, desc_time):
+            logger.info("Generating test {index}", index=self.index)
+            dirname = os.path.dirname(self.get_input_path())
+            os.makedirs(dirname, exist_ok=True)
+            gen.generate(self.get_input_path(), args)
 
 
 def expand_range(val):
