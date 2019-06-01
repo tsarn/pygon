@@ -28,6 +28,7 @@ import yaml
 from loguru import logger
 
 from pygon.testcase import FileName, SolutionTest, Verdict
+from pygon.testcase import expand_generator_command
 from pygon.config import TEST_FORMAT
 
 
@@ -209,16 +210,18 @@ class Problem:
         return self._main_solution
 
     def get_solution_tests(self):
-        """Collects all of the SolutionTests from file system and
-        returns it as a list, sorted by indices
+        """Collects all of the SolutionTests from the file system and
+        returns it as a list, sorted by index.
         """
 
         res = []
+        lst = set(os.listdir(os.path.join(self.root, "tests")))
 
-        for i in os.listdir(os.path.join(self.root, "tests")):
+        for i in lst:
             if not i.endswith(".yaml"):
-                continue
-            base = i[:-5]
+                base = i
+            else:
+                base = i[:-5]
             try:
                 index = int(base)
             except ValueError:
@@ -228,7 +231,15 @@ class Problem:
                 continue
 
             test = SolutionTest(index, problem=self)
-            test.load()
+
+            if not i.endswith(".yaml"):
+                if "{}.yaml".format(i) in lst:
+                    continue
+
+                # There's no descriptor, so this test is has default settings,
+                # so we don't run load.
+            else:
+                test.load()
             res.append(test)
 
         res.sort(key=lambda test: test.index)
@@ -248,10 +259,15 @@ class Problem:
 # then a path to the input file, relative to the problem root.
 #
 # Generated tests are lines beginning with 'G', then flags,
-# then generator command.
+# then generator command. By default, ranges are expanded into
+# several tests. For example, generator command "gen [1..3]" expands
+# into three tests, with generator commands "gen 1", "gen 2" and "gen 3"
+# respectively. You can also use several ranges in one command and
+# specify step, for example "gen 10 [1,3..9] 20 [5,4..1]".
 #
 # List of flags:
 #   S - this test is a sample
+#   R - do not expand ranges in this test (only for generated tests)
 #
 # For example, following line means a manually entered test that is
 # included in the statements and is located at PROBLEMROOT/tests/01:
@@ -267,11 +283,15 @@ class Problem:
         for test in self.get_solution_tests():
             if test.generate:
                 line = "G"
+                exp = expand_generator_command(test.generate)
+                if len(exp) != 1 or exp[0] != test.generate:
+                    line += "R"
             else:
                 line = "M"
 
             if test.sample:
                 line += "S"
+
 
             line += " "
 
@@ -306,12 +326,18 @@ class Problem:
             if flags[0] == "M":
                 with open(os.path.join(self.root, arg), 'rb') as f:
                     test['data'] = f.read()
+                tests.append(test)
             elif flags[0] == "G":
-                test['generate'] = arg
+                if "R" not in flags:
+                    for i in expand_generator_command(arg):
+                        test = test.copy()
+                        test["generate"] = i
+                        tests.append(test)
+                else:
+                    test["generate"] = arg
+                    tests.append(test)
             else:
                 raise ValueError("Malformed line: '{}'".format(l))
-
-            tests.append(test)
 
         to_remove = set(os.listdir(dirname))
 

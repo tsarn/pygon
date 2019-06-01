@@ -23,6 +23,7 @@
 
 import os
 import shlex
+import itertools
 from enum import Enum
 
 import yaml
@@ -156,7 +157,8 @@ class SolutionTest:
         """Returns a path to the output data.
 
         Args:
-            identifier: identifier of solution whose output data to point to.
+            identifier (str): identifier of `Solution` whose
+                              output data to point to.
         """
 
         return os.path.join(self.problem.root, BUILD_DIR, "outputs",
@@ -177,3 +179,83 @@ class SolutionTest:
         gen = Generator.from_identifier(args.pop(0), self.problem)
         gen.ensure_compile()
         gen.generate(self.get_input_path(), args)
+
+
+def expand_range(val):
+    """Expands the Haskell-like range given as a parameter
+    into Python's `range` object. The range must be finite.
+
+    Args:
+        val (str): a range to expand.
+
+    Returns:
+        range: resulting range.
+
+    Raises:
+        ValueError: if given an invalid Haskell-like range.
+
+    >>> expand_range("[1..10]")
+    range(1, 11)
+
+    >>> expand_range("[1,3..10]")
+    range(1, 11, 2)
+
+    >>> expand_range("[5,4..1]")
+    range(5, 0, -1)
+    """
+
+    if not val.startswith("[") or not val.endswith("]"):
+        raise ValueError("Invalid bracket placement")
+
+    val = val[1:-1]
+    spl = val.split("..")
+    if len(spl) != 2 or not all(spl):
+        raise ValueError("Invalid range")
+
+    end = int(spl[1])
+    if "," in spl[0]:
+        begin, bstep = map(int, spl[0].split(","))
+        step = bstep - begin
+    else:
+        begin = int(spl[0])
+        step = 1
+
+    if step == 0:
+        raise ValueError("Zero step is not allowed")
+
+    if step > 0:
+        end += 1
+    else:
+        end -= 1
+
+    return range(begin, end, step)
+
+
+def expand_generator_command(cmd):
+    """Expands a generator command into a list of generator commands
+    by expanding the ranges inside it.
+
+    Args:
+        cmd (str): the source command
+
+    Returns:
+        list: a list of strs, the expanded generator commands
+
+    >>> expand_generator_command("gen 123")
+    ["gen 123"]
+
+    >>> expand_generator_command("gen [1..3] [1..2]")
+    ["gen 1 1", "gen 2 1", "gen 3 1", "gen 1 2", "gen 2 2", "gen 3 2"]
+    """
+
+    spl = shlex.split(cmd)
+    res = []
+
+    for token in spl:
+        try:
+            expanded = expand_range(token)
+        except ValueError:
+            expanded = [token]
+        res.append(list(map(shlex.quote, map(str, expanded))))
+
+    return list(map(" ".join, itertools.product(*res)))
