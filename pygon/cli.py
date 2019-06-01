@@ -188,16 +188,26 @@ def invoke(tests=None, solutions=None):
     data = []
     verdicts = [[] for _ in solutions]
 
+    need_judging = 0
+
     for test in tests:
-        data.append([str(test.index)])
-        for i, solution in enumerate(solutions):
-            res = solution.judge(test)
-            verdicts[i].append(res.verdict)
-            s = click.style(res.verdict.value, fg="green" if
-                            solution.tag.check_one(res.verdict) else "red",
-                            bold=True)
-            s += " {} ms / {} MiB".format(round(res.time * 1000), round(res.memory))
-            data[-1].append(s)
+        for solution in solutions:
+            if solution.need_judge(test):
+                need_judging += 1
+
+    with click.progressbar(length=need_judging) as bar:
+        for test in tests:
+            data.append([str(test.index)])
+            for i, solution in enumerate(solutions):
+                if solution.need_judge(test):
+                    bar.update(1)
+                res = solution.judge(test)
+                verdicts[i].append(res.verdict)
+                s = click.style(res.verdict.value, fg="green" if
+                                solution.tag.check_one(res.verdict) else "red",
+                                bold=True)
+                s += " {} ms / {} MiB".format(round(res.time * 1000), round(res.memory))
+                data[-1].append(s)
 
     data.append(["Tag correct?"])
     for i, solution in enumerate(solutions):
@@ -247,7 +257,7 @@ def stress(command, solutions):
         with click.progressbar(commands) as bar:
             for cmd in bar:
                 test = SolutionTest(problem=prob, generate=cmd,
-                                    dirname="/tmp/kek")
+                                    dirname=dirname)
                 test.build()
                 main_solution.judge(test)
                 failed = set()
