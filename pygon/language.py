@@ -101,7 +101,12 @@ class Language(ABC):
                 for i in res:
                     inc += "-I {} ".format(shlex.quote(i))
 
-                return shlex.split(compile_cmd.format(src=shlex.quote(src),
+                if type(src) == list:
+                    src = " ".join(map(shlex.quote, src))
+                else:
+                    src = shlex.quote(src)
+
+                return shlex.split(compile_cmd.format(src=src,
                                                       exe=shlex.quote(exe),
                                                       inc=inc))
 

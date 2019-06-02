@@ -6,10 +6,10 @@ programming contests. It addresses some gripes I (and many others apparently) ha
 
 ## Requirements
 
-Python 3.5+ is required. Currently running solutions depends on GNU time-compatible command.
-So, probably only Linux is supported right now. But don't worry! I'm working on it.
-Anyway, you wouldn't even have to think about dependencies if I get around to packaging this whole
-thing properly. There's hope.
+Python 3.5+ is required, as well as C compiler for building
+solution runner utility and a C++ compiler for building standard checkers
+and validators.  Currently running solutions is implemented only for Linux,
+but if you use Windows don't worry! I'm working on it.
 
 ## Comparison with Polygon
 

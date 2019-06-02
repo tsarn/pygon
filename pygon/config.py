@@ -30,9 +30,6 @@ BUILD_DIR = "pygon-build"
 TEST_FORMAT = "{:02d}"
 
 DEFAULT_CONFIG_FILE = """\
-# Path to GNU time utility.
-time: "/usr/bin/time"
-
 # Path to pdflatex. Default works if pdflatex is in your PATH.
 pdflatex: "pdflatex"
 

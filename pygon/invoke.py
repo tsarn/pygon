@@ -23,15 +23,53 @@
 measuring their execution time."""
 
 import os
+import sys
 import subprocess
 import tempfile
 from shutil import copyfile
 from contextlib import contextmanager
 
 import yaml
+from pkg_resources import resource_filename
 
 from pygon.testcase import Verdict
-from pygon.config import CONFIG
+from pygon.language import Language
+from pygon.config import CONFIG, BUILD_DIR
+
+
+def get_exe_suffix():
+    """Returns suffix of executable files: ".exe" on Windows, "" elsewhere."""
+
+    if sys.platform in ["win32", "cygwin"]:
+        return ".exe"
+
+    return ""
+
+
+def get_run_path():
+    """Returns path to run utility executable."""
+
+    return resource_filename(
+        "pygon",
+        os.path.join("data", BUILD_DIR, "run") + get_exe_suffix())
+
+
+def ensure_run_built():
+    """Compile run utility if it isn't built."""
+
+    if os.path.exists(get_run_path()):
+        return
+
+    if sys.platform == "win32":
+        run_platform = "run_win32.c"
+    else:
+        run_platform = "run_linux.c"
+
+    lang = Language.from_name("c99")
+    lang.compile([
+        resource_filename("pygon", os.path.join("data", "run", "main.c")),
+        resource_filename("pygon", os.path.join("data", "run", run_platform)),
+    ], get_run_path(), [])
 
 
 class InvokeResult:
@@ -69,7 +107,6 @@ class InvokeResult:
 class Invoke:
     """Helper class for running solutions, redirecting their stdin/stdout,
     measuring their time and memory usage.
-    Currenly using GNU time.
 
     Attributes:
         cmd: command to run as a list of strings.
@@ -90,46 +127,33 @@ class Invoke:
         self.time_limit = time_limit
         self.memory_limit = memory_limit
 
+
     def run(self):
         """Run the command."""
 
+        ensure_run_built()
+
         with tempfile.TemporaryDirectory() as dirpath:
-            logpath = os.path.join(dirpath, "time.out")
+            logpath = os.path.join(dirpath, "run.yaml")
 
             cmd = [
-                CONFIG.get("time", "/usr/bin/time"),
-                "-q",
-                "-f", "user: %U\nsystem: %S\nreal: %e\nmemory: %M",
-                "-o", logpath
+                get_run_path(),
+                str(round(1000 * self.time_limit)),
+                str(round(self.memory_limit)),
+                str(round(5000 * self.time_limit)),
+                logpath
             ] + self.cmd
 
-            verdict = Verdict.OK
-
-            try:
-                subprocess.run(cmd, stdin=self.stdin, stdout=self.stdout,
-                               stderr=subprocess.DEVNULL, cwd=self.cwd,
-                               timeout=5 * self.time_limit, check=True)
-            except subprocess.TimeoutExpired:
-                verdict = Verdict.TIME_LIMIT_EXCEEDED
-            except subprocess.CalledProcessError:
-                verdict = Verdict.RUNTIME_ERROR
+            subprocess.run(cmd, stdin=self.stdin, stdout=self.stdout,
+                           stderr=subprocess.DEVNULL, cwd=self.cwd,
+                           timeout=5 * self.time_limit, check=True)
 
             with open(logpath) as logf:
                 log = yaml.safe_load(logf.read())
 
-            if verdict == Verdict.TIME_LIMIT_EXCEEDED:
-                # killed by timeout, won't find anything useful
-                time_used = self.time_limit
-                memory_used = 0
-            else:
-                time_used = log['user'] + log['system']
-                memory_used = log['memory'] / 1024
-
-            if verdict == Verdict.OK:
-                if time_used > self.time_limit:
-                    verdict = Verdict.TIME_LIMIT_EXCEEDED
-                elif memory_used > self.memory_limit:
-                    verdict = Verdict.MEMORY_LIMIT_EXCEEDED
+            time_used = log["time"] / 1000
+            memory_used = log["memory"]
+            verdict = Verdict(log["verdict"])
 
             return InvokeResult(verdict, time_used, memory_used)
 
