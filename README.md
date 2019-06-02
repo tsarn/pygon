@@ -7,9 +7,9 @@ programming contests. It addresses some gripes I (and many others apparently) ha
 ## Requirements
 
 Python 3.5+ is required, as well as C compiler for building
-solution runner utility and a C++ compiler for building standard checkers
-and validators.  Currently running solutions is implemented only for Linux,
-but if you use Windows don't worry! I'm working on it.
+solution runner utility (if you're on Windows, binary is already bundled with
+pygon and you don't need to worry about it) and a C++ compiler for building standard checkers
+and validators.
 
 ## Comparison with Polygon
 

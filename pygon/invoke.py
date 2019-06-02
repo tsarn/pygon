@@ -49,9 +49,17 @@ def get_exe_suffix():
 def get_run_path():
     """Returns path to run utility executable."""
 
+    if not CONFIG.get("custom_run") and sys.platform in ["win32", "cygwin"]:
+        return resource_filename(
+            "pygon",
+            os.path.join("data", "run", "run_win32.exe")
+        )
+
+
     return resource_filename(
         "pygon",
-        os.path.join("data", BUILD_DIR, "run") + get_exe_suffix())
+        os.path.join("data", BUILD_DIR, "run") + get_exe_suffix()
+    )
 
 
 def ensure_run_built():
@@ -61,15 +69,17 @@ def ensure_run_built():
         return
 
     if sys.platform == "win32":
-        run_platform = "run_win32.c"
+        run_filename = "run_win32.cpp"
+        lang = Language.from_name("c++03")
     else:
-        run_platform = "run_linux.c"
+        run_filename = "run_posix.c"
+        lang = Language.from_name("c99")
 
-    lang = Language.from_name("c99")
-    lang.compile([
-        resource_filename("pygon", os.path.join("data", "run", "main.c")),
-        resource_filename("pygon", os.path.join("data", "run", run_platform)),
-    ], get_run_path(), [])
+    lang.compile(
+        resource_filename("pygon", os.path.join("data", "run", run_filename)),
+        get_run_path(),
+        []
+    )
 
 
 class InvokeResult:

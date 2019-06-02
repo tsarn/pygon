@@ -19,15 +19,35 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 // SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#define _GNU_SOURCE
+#define _DEFAULT_SOURCE
 
-#include "run.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <signal.h>
 #include <sys/resource.h>
 #include <sys/time.h>
 #include <sys/wait.h>
+
+#define OK 0
+#define TL 1
+#define ML 2
+#define RL 3
+
+typedef struct {
+    int verdict;
+    int exitcode;
+    int time;
+    int memory;
+} result_t;
+
+static char *verdicts[] = {
+    "ERR",
+    "OK",
+    "TL",
+    "ML",
+    "RL"
+};
 
 static result_t *res;
 static int pid;
@@ -102,4 +122,29 @@ void run(int argc, char **argv, int tl, int ml, int rl, result_t *r)
     if (res->verdict == -1) {
         res->verdict = OK;
     }
+}
+
+int main(int argc, char **argv)
+{
+    // Usage: run <tl> <ml> <rl> <log> <args>
+    if (argc <= 5) {
+        fprintf(stderr, "not enough arguments\n");
+        return 1;
+    }
+    result_t res;
+
+    int tl = atoi(argv[1]);
+    int ml = atoi(argv[2]);
+    int rl = atoi(argv[3]);
+
+    run(argc - 5, argv + 5, tl, ml, rl, &res);
+
+    FILE *f = fopen(argv[4], "w");
+    fprintf(f, "verdict: %s\n", verdicts[res.verdict + 1]);
+    fprintf(f, "exitcode: %d\n", res.exitcode);
+    fprintf(f, "time: %d\n", res.time);
+    fprintf(f, "memory: %d\n", res.memory);
+    fclose(f);
+
+    return 0;
 }

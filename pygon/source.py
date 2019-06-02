@@ -170,8 +170,8 @@ class Source(ABC):
         """Save data about itself into the descriptor file."""
 
         with open(self.get_descriptor_path(), "w") as desc:
-            data = yaml.dump(dict(language=self.lang.name),
-                             desc, default_flow_style=False)
+            yaml.dump(dict(language=self.lang.name),
+                      desc, default_flow_style=False)
 
     def get_descriptor_path(self):
         """Returns path to descriptor, where information
