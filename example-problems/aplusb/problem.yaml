@@ -1,4 +1,4 @@
-internal_name: example-aplusb
+internal_name: aplusb
 input_file: input.txt
 output_file: output.txt
 time_limit: 1.0

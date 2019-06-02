@@ -35,6 +35,7 @@ from pygon.checker import Checker
 from pygon.validator import Validator
 from pygon.generator import Generator
 from pygon.solution import Solution
+from pygon.interactor import Interactor
 from pygon.testcase import SolutionTest, expand_generator_command
 
 
@@ -85,31 +86,40 @@ def init(name):
         sys.exit(1)
 
     for i in ["checkers", "generators", "resources", "solutions", "statements",
-              "tests", "validators"]:
+              "tests", "validators", "interactors"]:
         os.makedirs(os.path.join(dirname, i), exist_ok=True)
 
     with open(os.path.join(dirname, "problem.yaml"), "w") as desc:
         print("""\
-# Internal problem name, should be concise, recognisable and match the directory name
+# Internal problem name, should be concise,
+# recognisable and match the directory name.
 internal_name: "{}"
 
-# Input file name, or "standard_io" if reading from standard input
+# Is this problem interactive?
+interactive: false
+
+# Input file name, or "standard_io" if reading from standard input.
+# Must be "standard_io" for interactive problems.
 input_file: standard_io
 
-# Output file name, or "standard_io" if writing to standard output
+# Output file name, or "standard_io" if writing to standard output.
+# Must be "standard_io" for interactive problems.
 output_file: standard_io
 
-# Time limit per test in seconds
+# Time limit per test in seconds.
 time_limit: 1.0
 
-# Memory limit per test in MiB
+# Memory limit per test in MiB.
 memory_limit: 256
 
-# Active checker, default is probably good enough if you have single possible answer
+# Active checker, default is probably good enough if you have single possible answer.
 active_checker: standard.lcmp
 
-# Active validators, default checks that tests are reasonably formatted
+# Active validators, default checks that tests are reasonably formatted.
 active_validators: [standard.wfval]
+
+# Active interactor. Uncomment following line if `interactive` is true.
+# active_interactor: (YOUR INTERACTOR HERE)
 """.format(name), file=desc, end="")
 
 
@@ -132,6 +142,9 @@ def discover():
     prob.discover_sources(Generator)
     prob.discover_sources(Validator)
     prob.discover_sources(Solution)
+
+    if prob.interactive:
+        prob.discover_sources(Interactor)
 
 
 @click.command(help="Manage tests: reorder, remove, add")

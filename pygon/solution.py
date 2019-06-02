@@ -149,7 +149,7 @@ class Solution(Source):
         """Invoke solution on a test (without running a checker).
 
         Args:
-            test: a SolutionTest.
+            test (SolutionTest): the test
 
         Returns:
             InvokeResult
@@ -166,10 +166,17 @@ class Solution(Source):
 
         os.makedirs(os.path.dirname(out), exist_ok=True)
 
+        if self.problem.interactive:
+            with invoke.with_temp_cwd():
+                return self.problem.active_interactor.interact(
+                    inp, out, invoke
+                )
+
         with invoke.with_temp_cwd():
             with invoke.with_stdin(self.problem.input_file, inp):
                 with invoke.with_stdout(self.problem.output_file, out):
                     return invoke.run()
+
 
     def need_judge(self, test):
         """Do we have the freshest possible verdict on running solution
@@ -189,6 +196,9 @@ class Solution(Source):
             self.get_descriptor_path(),
             self.problem.active_checker.get_executable_path()
         ]
+
+        if self.problem.interactive:
+            deps.append(self.problem.active_interactor.get_executable_path())
 
         verdict_path = test.get_verdict_path(self.identifier)
 

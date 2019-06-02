@@ -90,20 +90,23 @@ class InvokeResult:
         time: time used in seconds
         memory: memory used in MiB
         comment: checker's comment
+        icomment: interactor's comment
     """
 
-    def __init__(self, verdict, time, memory, comment=""):
+    def __init__(self, verdict, time, memory, comment="", icomment=""):
         self.verdict = verdict
         self.time = time
         self.memory = memory
         self.comment = comment
+        self.icomment = icomment
 
     def to_dict(self):
         return dict(
             verdict=self.verdict.value,
             time=self.time,
             memory=self.memory,
-            comment=self.comment
+            comment=self.comment,
+            icomment=self.icomment
         )
 
     @classmethod
@@ -111,7 +114,8 @@ class InvokeResult:
         return cls(verdict=Verdict(data["verdict"]),
                    time=data["time"],
                    memory=data["memory"],
-                   comment=data["comment"])
+                   comment=data["comment"],
+                   icomment=data["icomment"])
 
 
 class Invoke:
@@ -156,7 +160,7 @@ class Invoke:
 
             subprocess.run(cmd, stdin=self.stdin, stdout=self.stdout,
                            stderr=subprocess.DEVNULL, cwd=self.cwd,
-                           timeout=5 * self.time_limit, check=True)
+                           check=True)
 
             with open(logpath) as logf:
                 log = yaml.safe_load(logf.read())

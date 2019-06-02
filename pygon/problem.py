@@ -41,13 +41,15 @@ class Problem:
 
     Attributes:
         root: path to problem root
-        internal_name: problem internal name (e.g. "aplusb")
-        input_file: FileName of input file
-        output_file: FileName of output file
-        time_limit: time limit in seconds
-        memory_limit: memory limit in MiB
-        active_checker: active Checker for the problem (or None)
-        active_validators: list of active Validators for the problem
+        internal_name (str): problem internal name (e.g. "aplusb")
+        input_file (FileName): input file
+        output_file (FileName): output file
+        interactive (bool): is this problem interactive?
+        time_limit (float): time limit in seconds
+        memory_limit (float): memory limit in MiB
+        active_checker (Checker): active checker for the problem (or None)
+        active_interactor (Interactor): active interactor for the problem (or None)
+        active_validators (list): list of active Validators for the problem
     """
 
     def __init__(self, root):
@@ -60,9 +62,11 @@ class Problem:
         self.internal_name = os.path.basename(root)
         self.input_file = FileName(stdio=True)
         self.output_file = FileName(stdio=True)
+        self.interactive = False
         self.time_limit = 1.0
         self.memory_limit = 256.0
         self.active_checker = None
+        self.active_interactor = None
         self.active_validators = []
 
     def load(self):
@@ -70,6 +74,7 @@ class Problem:
 
         from pygon.checker import Checker
         from pygon.validator import Validator
+        from pygon.interactor import Interactor
 
         with open(self.get_descriptor_path()) as desc:
             data = yaml.safe_load(desc.read())
@@ -77,6 +82,7 @@ class Problem:
         self.internal_name = data["internal_name"]
         self.input_file = FileName(data.get("input_file", "standard_io"))
         self.output_file = FileName(data.get("output_file", "standard_io"))
+        self.interactive = data.get("interactive", False)
         self.time_limit = data.get("time_limit", 1.0)
         self.memory_limit = data.get("memory_limit", 256.0)
 
@@ -87,9 +93,16 @@ class Problem:
         else:
             self.active_checker = None
 
+        itr = data.get("active_interactor")
+
+        if itr:
+            self.active_interactor = Interactor.from_identifier(itr, self)
+        else:
+            self.active_interactor = None
+
         self.active_validators = []
 
-        for i in data.get("active_validators"):
+        for i in data.get("active_validators", []):
             self.active_validators.append(Validator.from_identifier(i, self))
 
     def get_source_filename(self, directory, name):
@@ -161,7 +174,7 @@ class Problem:
             if '{}.yaml'.format(base) in lst:
                 continue
 
-            logger.info("{} {} discovered", cls.__name__, src)
+            logger.success("{} {} discovered", cls.__name__, src)
 
             obj = cls(problem=self, name=src)
             obj.save()
@@ -406,6 +419,7 @@ class Problem:
         """Build the problem verifying that:
 
         - There is an active checker and it compiles
+        - (If interactive) There is an active interactor and it compiles
         - There is a main solution and it compiles
         - All active validators compile
         - All tests are generated and valid
@@ -421,6 +435,18 @@ class Problem:
             self.active_checker.ensure_compile()
         except subprocess.CalledProcessError:
             raise ProblemConfigurationError("Active checker compilation failed")
+
+        if self.interactive:
+            if not self.input_file.stdio or not self.output_file.stdio:
+                raise ProblemConfigurationError("Interactive problems must use stdio")
+
+            if not self.active_interactor:
+                raise ProblemConfigurationError("Active interactor is not set")
+
+            try:
+                self.active_interactor.ensure_compile()
+            except subprocess.CalledProcessError:
+                raise ProblemConfigurationError("Active interactor compilation failed")
 
         main_solution = self.get_main_solution()
 

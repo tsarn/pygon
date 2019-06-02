@@ -1,0 +1,3 @@
+language: c++11
+tag: incorrect
+verdicts: [WA]

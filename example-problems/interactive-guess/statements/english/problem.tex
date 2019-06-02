@@ -1,0 +1,58 @@
+\textit{This is an interactive problem. You have to use a \texttt{flush}
+operation right after printing each line. For example, in C++ you should use
+the function \texttt{fflush(stdout)}, in Java --- \texttt{System.out.flush()},
+in Pascal --- \texttt{flush(output)} and in Python ---
+\texttt{sys.stdout.flush()}.}
+
+In this problem jury has some number $x$, and you have to guess it. The number
+$x$ is always an integer from $1$ and to $n$, where $n$ is given to you at the
+beginning.
+
+
+You can make queries to the testing system. Each query is a single integer from
+$1$ to $n$. Flush output stream after printing each query. There are two
+different responses the testing program can provide:
+
+\begin{itemize} \item the string ``\texttt{<}'' (without quotes), if the jury's
+    number is less than the integer in your query; \item the string
+    ``\texttt{>=}'' (without quotes), if the jury's number is greater or equal
+    to the integer in your query.  \end{itemize}
+
+When your program guessed the number $x$, print string ``\texttt{! x}'', where
+$x$ is the answer, and \textbf{terminate your program normally} immediately
+after flushing the output stream.
+
+Your program is allowed to make no more than $25$ queries (not including
+printing the answer) to the testing system.
+
+\InputFile
+
+Use standard input to read the responses to the queries.
+
+The first line contains an integer $n$ ($1 \le n \le 10^6$)~--- maximum
+possible jury's number.
+
+Following lines will contain responses to your queries~--- strings ``\t{<}'' or
+``\t{>=}''. The $i$-th line is a response to your $i$-th query. When your
+program will guess the number print ``\texttt{! x}'', where $x$ is the answer
+and terminate your program.
+
+The testing system will allow you to read the response on the query only after
+your program print the query for the system and perform \texttt{flush}
+operation.
+
+\OutputFile
+
+To make the queries your program must use standard output.
+
+Your program must print the queries~--- integer numbers $x_i$ ($1 \le x_i \le
+n$), one query per line (do not forget ``\textit{end of line}'' after each
+$x_i$). After printing each line your program must perform operation
+\texttt{flush}.
+
+Each of the values $x_i$ mean the query to the testing system. The response to
+the query will be given in the input file after you flush output. In case your
+program guessed the number $x$, print string ``\texttt{! x}'', where $x$ --- is
+the answer, and terminate your program.
+
+\SAMPLES

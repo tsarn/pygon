@@ -1,0 +1,29 @@
+# Internal problem name, should be concise,
+# recognisable and match the directory name.
+internal_name: "interactive-guess"
+
+# Is this problem interactive?
+interactive: true
+
+# Input file name, or "standard_io" if reading from standard input.
+# Must be "standard_io" for interactive problems.
+input_file: standard_io
+
+# Output file name, or "standard_io" if writing to standard output.
+# Must be "standard_io" for interactive problems.
+output_file: standard_io
+
+# Time limit per test in seconds.
+time_limit: 1.0
+
+# Memory limit per test in MiB.
+memory_limit: 256
+
+# Active checker, default is probably good enough if you have single possible answer.
+active_checker: check
+
+# Active validators, default checks that tests are reasonably formatted.
+active_validators: [val]
+
+# Active interactor. Uncomment following line if `interactive` is true.
+active_interactor: interactor

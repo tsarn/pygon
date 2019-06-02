@@ -1,0 +1,2 @@
+generate: gen 50000 1
+sample: false

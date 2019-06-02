@@ -38,6 +38,7 @@ class Verdict(Enum):
 
     OK = "OK"
     TIME_LIMIT_EXCEEDED = "TL"
+    REAL_TIME_LIMIT_EXCEEDED = "RL"
     MEMORY_LIMIT_EXCEEDED = "ML"
     RUNTIME_ERROR = "RE"
     VALIDATION_FAILED = "VF"

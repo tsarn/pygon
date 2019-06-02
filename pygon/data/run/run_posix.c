@@ -88,7 +88,7 @@ void run(int argc, char **argv, int tl, int ml, int rl, result_t *r)
     }
 
     signal(SIGALRM, onalarm);
-    alarm(rl);
+    alarm((rl + 999) / 1000);
 
     int st;
     struct rusage ru;
