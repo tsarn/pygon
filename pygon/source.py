@@ -90,14 +90,16 @@ class Source(ABC):
     def get_executable_path(self):
         """Returns path to executable file."""
 
+        from pygon.invoke import get_exe_suffix
+
         if self.standard:
             return resource_filename(
                 "pygon",
                 os.path.join("data", BUILD_DIR,
-                             self.directory_name, self.standard))
+                             self.directory_name, self.standard) + get_exe_suffix())
 
         return os.path.join(self.problem.root, BUILD_DIR,
-                            self.directory_name, self.identifier)
+                            self.directory_name, self.identifier + get_exe_suffix())
 
     def get_resource_dirs(self):
         """Returns a list of resource directories in search order."""

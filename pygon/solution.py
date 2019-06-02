@@ -219,9 +219,9 @@ class Solution(Source):
 
         main_solution = self.problem.get_main_solution()
 
-        logger.debug("Judging {solution} on test {test}",
-                     solution=self.identifier,
-                     test=test.index)
+        logger.info("Judging {solution} on test {test}",
+                    solution=self.identifier,
+                    test=test.index)
 
         res = self.invoke(test)
 

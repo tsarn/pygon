@@ -438,6 +438,7 @@ class Problem:
                 raise ProblemConfigurationError("Generator compilation failed")
 
             for validator in self.active_validators:
+                validator.ensure_compile()
                 verdict = validator.validate(test.get_input_path())
                 if verdict.verdict != Verdict.OK:
                     raise ProblemConfigurationError(
