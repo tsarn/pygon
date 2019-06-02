@@ -219,7 +219,7 @@ def invoke(tests=None, solutions=None):
                 s = click.style(res.verdict.value, fg="green" if
                                 solution.tag.check_one(res.verdict) else "red",
                                 bold=True)
-                s += " {} ms / {} MiB".format(round(res.time * 1000), round(res.memory))
+                s += " {:>4} ms {:>3} MiB".format(round(res.time * 1000), round(res.memory))
                 data[-1].append(s)
 
     data.append(["Tag correct?"])
