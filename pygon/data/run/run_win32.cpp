@@ -64,50 +64,48 @@ void run(int argc, wchar_t **argv, int tl, int ml, int rl, result_t *res)
     res->exitcode = 0;
     res->time = 0;
     res->memory = 0;
-    
+
     wchar_t cmd[CMD_MAX];
     cmd[0] = 0;
-    
-    wchar_t errbuf[CMD_MAX];
-    
+
     for (int i = 0; i < argc; ++i) {
         wcscat(cmd, L"\"");
         wcscat(cmd, argv[i]);
         wcscat(cmd, L"\" ");
     }
-    
+
     PROCESS_INFORMATION pi;
     STARTUPINFOW si;
-    
+
     ZeroMemory(&pi, sizeof(pi));
     ZeroMemory(&si, sizeof(si));
-    
+
     if (!CreateProcessW(argv[0], cmd, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi)) {
         fprintf(stderr, "CreateProcessW FAILED\n");
         return;
     }
-    
+
     if (WaitForSingleObject(pi.hProcess, rl) == WAIT_TIMEOUT) {
         res->verdict = RL;
         TerminateProcess(pi.hProcess, 0);
     }
-    
+
     PROCESS_MEMORY_COUNTERS mc;
-    
+
     if (GetProcessMemoryInfo(pi.hProcess, &mc, sizeof(mc))) {
         res->memory = mc.PeakWorkingSetSize / 1024 / 1024;
     } else {
         fprintf(stderr, "GetProcessMemoryInfo FAILED\n");
     }
-    
+
     FILETIME utime, stime, dummy1, dummy2;
-    
+
     if (GetProcessTimes(pi.hProcess, &dummy1, &dummy2, &stime, &utime)) {
         res->time = FileTimeToLongLong(&stime) / 10000 + FileTimeToLongLong(&utime) / 10000;
     } else {
         fprintf(stderr, "GetProcessTimes FAILED\n");
     }
-    
+
     if (res->verdict == -1) {
         if (res->time >= tl) {
             res->verdict = TL;
@@ -119,10 +117,10 @@ void run(int argc, wchar_t **argv, int tl, int ml, int rl, result_t *res)
     if (res->verdict == -1) {
         res->verdict = OK;
     }
-    
+
     DWORD exitcode;
     GetExitCodeProcess(pi.hProcess, &exitcode);
-    
+
     res->exitcode = (int)exitcode;
 
     CloseHandle(pi.hProcess);
@@ -132,10 +130,10 @@ void run(int argc, wchar_t **argv, int tl, int ml, int rl, result_t *res)
 int main()
 {
     // Usage: run <tl> <ml> <rl> <log> <args>
-    
+
     int argc;
     wchar_t **argv = CommandLineToArgvW(GetCommandLineW(), &argc);
-    
+
     if (argc <= 5) {
         fprintf(stderr, "not enough arguments\n");
         return 1;
