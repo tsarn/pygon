@@ -80,16 +80,17 @@ class Statement:
                         suff = "секунда"
                     elif written[-1] in "234":
                         suff = "секунды"
-        elif self.language == "english":
-            if time == 1:
-                suff = "second"
+        else:
+            if time == round(time):
+                if format(round(time), "02d").endswith("01"):
+                    suff = "second"
 
         return "{:.03f}".format(time).rstrip("0.") + " " + suff
 
     def get_memory_limit(self):
         """Returns humanized memory limit in statement's language."""
 
-        suff = "MiB"
+        suff = "mebibytes"
         mem = self.problem.memory_limit
 
         if self.language == "russian":
@@ -100,6 +101,10 @@ class Statement:
                 if len(written) == 1 or written[-2] != "1":
                     if written[-1] in "234":
                         suff = "мегабайта"
+        else:
+            if mem == round(mem):
+                if format(round(mem), "02d").endswith("01"):
+                    suff = "mebibyte"
 
         return "{:.03f}".format(mem).rstrip("0.") + " " + suff
 
