@@ -23,7 +23,7 @@ memory_limit: 256
 active_checker: check
 
 # Active validators, default checks that tests are reasonably formatted.
-active_validators: [val]
+active_validators: [standard.wfval, val]
 
 # Active interactor. Uncomment following line if `interactive` is true.
 active_interactor: interactor

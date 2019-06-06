@@ -39,5 +39,5 @@ What I personally like about Polygon more
    to, say, ejudge.
  - It has so many cool warnings. From duplicate tests to typography errors and undefined
    behavior in C++ generators.
- - Currently it has a lot more features, like test groups, checker/validator tests and contests.
+ - Currently it has a more features, like test groups and contests.
    Hopefully not for long :)

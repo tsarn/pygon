@@ -110,25 +110,156 @@ class FileName:
                          'got {}'.format(field))
 
 
+class ValidatorTest:
+    """A test case for validator.
+
+    Attributes:
+        index: an integer index of the test (1-based).
+        problem (Problem): the problem.
+        verdict (Verdict): the expected verdict.
+    """
+
+    directory = os.path.join("validators", "tests")
+
+    def __init__(self, index=None, problem=None, verdict=Verdict.OK):
+        self.index = index
+        self.problem = problem
+        self.verdict = verdict
+
+    def get_input_path(self):
+        """Returns a path to the test's input data."""
+
+        return os.path.join(self.problem.root, self.directory,
+                            TEST_FORMAT.format(self.index))
+
+    def get_descriptor_path(self):
+        """Returns a path to the test's descriptor file."""
+
+        return self.get_input_path() + ".yaml"
+
+    def load(self):
+        """Loads data about the test from the descriptor file."""
+
+        with open(self.get_descriptor_path()) as desc:
+            data = yaml.safe_load(desc.read())
+
+        self.verdict = Verdict(data["verdict"])
+
+    def validate(self, validators):
+        """Validate that the validator stack passes this test.
+        Raises `ProblemConfigurationError` if not.
+        """
+
+        from pygon.problem import ProblemConfigurationError
+
+        for i in validators:
+            verdict = i.validate(self.get_input_path()).verdict
+
+            if self.verdict == Verdict.OK:
+                if verdict != self.verdict:
+                    raise ProblemConfigurationError(
+                        "Validator '{}' doesn't pass validator test {}: expected "
+                        "{}, got {}".format(
+                            i.identifier, self.index,
+                            self.verdict, verdict
+                    ))
+            else:
+                if verdict == self.verdict:
+                    return
+
+        if self.verdict == Verdict.OK:
+            return
+
+        raise ProblemConfigurationError(
+            "Validator stack doesn't pass validator test {}: expected "
+            "{}, but no validator complained.".format(
+                self.index, self.verdict
+        ))
+
+
+class CheckerTest:
+    """A test case for checker.
+
+    Attributes:
+        index: an integer index of the test (1-based).
+        problem (Problem): the problem.
+        verdict (Verdict): the expected verdict.
+    """
+
+    directory = os.path.join("checkers", "tests")
+
+    def __init__(self, index=None, problem=None, verdict=Verdict.OK):
+        self.index = index
+        self.problem = problem
+        self.verdict = verdict
+
+    def get_input_path(self):
+        """Returns a path to the test's input data."""
+
+        return os.path.join(self.problem.root, self.directory,
+                            TEST_FORMAT.format(self.index))
+
+    def get_output_path(self):
+        """Returns a path to the test's output data."""
+
+        return self.get_input_path() + ".out"
+
+    def get_answer_path(self):
+        """Returns a path to the test's answer data."""
+
+        return self.get_input_path() + ".ans"
+
+    def get_descriptor_path(self):
+        """Returns a path to the test's descriptor file."""
+
+        return self.get_input_path() + ".yaml"
+
+    def load(self):
+        """Loads data about the test from the descriptor file."""
+
+        with open(self.get_descriptor_path()) as desc:
+            data = yaml.safe_load(desc.read())
+
+        self.verdict = Verdict(data["verdict"])
+
+    def validate(self, checker):
+        """Validate that the checker passes this test.
+        Raises `ProblemConfigurationError` if not.
+        """
+
+        from pygon.problem import ProblemConfigurationError
+
+        verdict = checker.judge(self.get_input_path(),
+                                self.get_output_path(),
+                                self.get_answer_path()).verdict
+
+        if verdict != self.verdict:
+            raise ProblemConfigurationError(
+                "Checker '{}' doesn't pass checker test {}: expected "
+                "{}, got {}".format(
+                    checker.identifier, self.index,
+                    self.verdict, verdict
+                ))
+
+
 class SolutionTest:
     """A test case for solution. May be either manually entered
     or generated using a generator.
+
+    Attributes:
+        index: an integer index of the test (1-based).
+        problem (Problem): the problem.
+        sample (bool): whether to use the test in the samples.
+        generate: None if test is manually entered or a string,
+                  containing generation command (e.g. "gen 1 2 3").
+        dirname: None if test is a normal test, or path to
+                 temporary directory if test is a part of stress run.
     """
+
+    directory = os.path.join("tests")
 
     def __init__(self, index=None, problem=None, sample=False, generate=None,
                  dirname=None):
-        """Construct a SolutionTest.
-
-        Args:
-            index: an integer index of the test.
-            problem: a Problem which this test belongs to.
-            sample: whether to use the test in the samples.
-            generate: None if test is manually entered or a string,
-                      containing generation command (e.g. "gen 1 2 3").
-            dirname: None if test is a normal test, or path to
-                     temporary directory if test is a part of stress run.
-        """
-
         self.index = index
         self.problem = problem
         self.sample = sample

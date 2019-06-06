@@ -27,8 +27,8 @@ import subprocess
 import yaml
 from loguru import logger
 
-from pygon.testcase import FileName, SolutionTest, Verdict
-from pygon.testcase import expand_generator_command
+from pygon.testcase import FileName, SolutionTest, CheckerTest, Verdict
+from pygon.testcase import expand_generator_command, ValidatorTest
 from pygon.config import TEST_FORMAT
 
 
@@ -222,13 +222,16 @@ class Problem:
         self._main_solution = res[0]
         return self._main_solution
 
-    def get_solution_tests(self):
-        """Collects all of the SolutionTests from the file system and
-        returns it as a list, sorted by index.
+    def get_tests(self, cls):
+        """Collects all of the tests of type cls:
+        solution/checker/validator tests.
         """
 
         res = []
-        lst = set(os.listdir(os.path.join(self.root, "tests")))
+        try:
+            lst = set(os.listdir(os.path.join(self.root, cls.directory)))
+        except OSError:
+            return res
 
         for i in lst:
             if not i.endswith(".yaml"):
@@ -243,7 +246,7 @@ class Problem:
             if TEST_FORMAT.format(index) != base or index < 1:
                 continue
 
-            test = SolutionTest(index, problem=self)
+            test = cls(index, problem=self)
 
             if not i.endswith(".yaml"):
                 if "{}.yaml".format(i) in lst:
@@ -258,6 +261,27 @@ class Problem:
         res.sort(key=lambda test: test.index)
 
         return res
+
+    def get_solution_tests(self):
+        """Collects all of the `SolutionTest`s from the file system and
+        returns it as a list, sorted by index.
+        """
+
+        return self.get_tests(SolutionTest)
+
+    def get_checker_tests(self):
+        """Collects all of the `CheckerTest`s from the file system and
+        returns it as a list, sorted by index.
+        """
+
+        return self.get_tests(CheckerTest)
+
+    def get_validator_tests(self):
+        """Collects all of the `ValidatorTest`s from the file system and
+        returns it as a list, sorted by index.
+        """
+
+        return self.get_tests(ValidatorTest)
 
     def edit_solution_tests(self):
         """Returns a editable multiline value for managing tests."""
@@ -455,6 +479,20 @@ class Problem:
         except subprocess.CalledProcessError:
             raise ProblemConfigurationError("Main solution compilation failed")
 
+        for validator in self.active_validators:
+            try:
+                validator.ensure_compile()
+            except subprocess.CalledProcessError:
+                raise ProblemConfigurationError(
+                    "Validator {} compilation failed".format(validator)
+                )
+
+        for test in self.get_checker_tests():
+            test.validate(self.active_checker)
+
+        for test in self.get_validator_tests():
+            test.validate(self.active_validators)
+
         tests = self.get_solution_tests()
 
         for test in tests:
@@ -464,7 +502,6 @@ class Problem:
                 raise ProblemConfigurationError("Generator compilation failed")
 
             for validator in self.active_validators:
-                validator.ensure_compile()
                 verdict = validator.validate(test.get_input_path())
                 if verdict.verdict != Verdict.OK:
                     raise ProblemConfigurationError(

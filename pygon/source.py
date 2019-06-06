@@ -187,7 +187,7 @@ class Source(ABC):
             CalledProcessError: if compiler returns non-zero exit code.
         """
 
-        logger.info("Compiling {name}", name=self.identifier)
+        logger.info("Compiling {} '{}'", self.directory_name[:-1], self.identifier)
 
         dirname = os.path.dirname(self.get_executable_path())
         os.makedirs(dirname, exist_ok=True)
