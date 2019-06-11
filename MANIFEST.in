@@ -3,5 +3,6 @@ include README.md
 recursive-include pygon/data/checkers *
 recursive-include pygon/data/resources *
 recursive-include pygon/data/validators *
+recursive-include pygon/data/run *
 recursive-include docs *
 recursive-exclude tests *.pyc

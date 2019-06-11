@@ -131,5 +131,6 @@ setup(
         'data/checkers/*',
         'data/resources/*',
         'data/validators/*',
+        'data/run/*',
     ]}
 )
