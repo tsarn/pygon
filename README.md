@@ -28,9 +28,8 @@ What I personally like about Pygon more:
  - All the files are stored locally and human-readable.
    So convenient! Especially for people who mainly use terminal apps.
    No need to copy and paste code into your browser.
- - It's pretty. Colors in the terminal are just so freaking sexy.
+ - It's pretty. Colors in the terminal are just so freaking cool.
  - It's open source.
- - More features coming (I've been working on only for three days when I wrote this README, give me a break)
 
 What I personally like about Polygon more
 
