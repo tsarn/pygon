@@ -487,12 +487,6 @@ class Problem:
                     "Validator {} compilation failed".format(validator)
                 )
 
-        for test in self.get_checker_tests():
-            test.validate(self.active_checker)
-
-        for test in self.get_validator_tests():
-            test.validate(self.active_validators)
-
         tests = self.get_solution_tests()
 
         for test in tests:
@@ -533,4 +527,77 @@ class Problem:
                             stmt.language, stmt.get_log_path()
                         ))
 
-        logger.success("Problem {} built successfully".format(self.internal_name))
+        logger.success("Problem built successfully")
+
+    def verify(self):
+        """Build and lint problem for configuration errors.
+        Raises errors when:
+
+        - Problem fails to build correctly (see `Problem.build`).
+        - Solutions have incorrect tags.
+        - Active checker doesn't pass all checker tests.
+        - Active validators don't pass all validator tests.
+
+        Reports warnings when:
+
+        - Checker tests are missing and custom checker is used.
+        - Validator tests are missing and custom validator is used.
+        - Custom validator is not used.
+        - No tests.
+        - Sample tests are not first.
+
+        """
+
+        from pygon.solution import Solution
+
+        self.build(statements=False)
+
+        solutions = Solution.all(self)
+        tests = self.get_solution_tests()
+
+        for solution in solutions:
+            verdicts = []
+            for test in tests:
+                verdicts.append(solution.judge(test).verdict)
+            if solution.tag.check_all(verdicts):
+                logger.success("Solution {} has correct tag"
+                               .format(solution.identifier))
+            else:
+                raise ProblemConfigurationError("Solution {} has incorrect tag"
+                                                .format(solution.identifier))
+
+        checker_tests = self.get_checker_tests()
+
+        for test in checker_tests:
+            test.validate(self.active_checker)
+
+        if checker_tests:
+            logger.success("Checker passed all tests")
+        elif not self.active_checker.standard:
+            logger.warning("No checker tests found, please consider adding them")
+
+        validator_tests = self.get_validator_tests()
+
+        for test in self.get_validator_tests():
+            test.validate(self.active_validators)
+
+        if any(not i.standard for i in self.active_validators):
+            if validator_tests:
+                logger.success("Validators passed all tests")
+            else:
+                logger.warning("No validator tests found, please consider adding them")
+        else:
+            logger.warning("No custom validators found, please consider adding them")
+
+        if tests:
+            prefix = True
+            for test in tests:
+                if test.sample:
+                    if not prefix:
+                        logger.warning(
+                            "Test case {} is a sample, but is not among "
+                            "the first tests for the problem".format(test.index))
+                else:
+                    prefix = False
+        else:
+            logger.warning("No test cases found")

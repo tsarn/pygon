@@ -133,6 +133,18 @@ def build(statements):
         prob.build(statements=statements)
     except ProblemConfigurationError as e:
         logger.error("Problem configuration error: {}", str(e))
+        sys.exit(1)
+
+
+@click.command(help="Lint problem for configuration errors")
+def verify():
+    prob = get_problem()
+
+    try:
+        prob.verify()
+    except ProblemConfigurationError as e:
+        logger.error("Problem configuration error: {}", str(e))
+        sys.exit(1)
 
 
 @click.command(help="Generate descriptors for sources that don't have them")
@@ -223,15 +235,18 @@ def invoke(tests=None, solutions=None):
                 data[-1].append(s)
 
     data.append(["Tag correct?"])
+    exitcode = 0
     for i, solution in enumerate(solutions):
         valid = solution.tag.check_all(verdicts[i])
         if valid:
             s = click.style("YES", fg="green", bold=True)
         else:
-            s = click.style("NO", fg="red", bold=True)
+            s = clic.style("NO", fg="red", bold=True)
+            exitcode = 1
         data[-1].append(s)
 
     click.echo(tabulate(data, header, tablefmt="presto"))
+    sys.exit(exitcode)
 
 
 @click.command(help="Stress-test solutions for tag violations")
@@ -295,6 +310,7 @@ def stress(command, solutions):
 
 cli.add_command(init)
 cli.add_command(build)
+cli.add_command(verify)
 cli.add_command(discover)
 cli.add_command(edittests)
 cli.add_command(addstatement)
