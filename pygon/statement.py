@@ -170,13 +170,10 @@ class Statement:
             if not test.sample:
                 continue
 
-            with open(test.get_input_path()) as f:
-                inp = f.read()
+            inp_path = test.get_input_path()
+            ans_path = test.get_output_path(main_solution.identifier)
 
-            with open(test.get_output_path(main_solution.identifier)) as f:
-                ans = f.read()
-
-            tests.append((inp, ans))
+            tests.append((inp_path, ans_path))
 
         if not tests:
             return ""
@@ -188,9 +185,7 @@ class Statement:
 
         for inp, ans in tests:
             res += """\
-\\exmp{%
-INP}{%
-ANS}%
+\\exmpfile{INP}{ANS}
 """.replace("INP", inp).replace("ANS", ans)
 
         res += """\
