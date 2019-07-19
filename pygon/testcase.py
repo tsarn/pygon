@@ -102,10 +102,17 @@ class FileName:
         if not self.stdio:
             return self.filename
 
-        if field == "input":
-            return "standard input"
-        if field == "output":
-            return "standard output"
+        if language == "russian":
+            if field == "input":
+                return "стандартный ввод"
+            if field == "output":
+                return "стандартный вывод"
+        else:
+            if field == "input":
+                return "standard input"
+            if field == "output":
+                return "standard output"
+
         raise ValueError('`field` must be one of ("input", "output"), '
                          'got {}'.format(field))
 

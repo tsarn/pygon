@@ -187,8 +187,12 @@ class Problem:
         res = []
 
         for lang in os.listdir(os.path.join(self.root, "statements")):
+            if lang == "tests":
+                continue
+
             with open(os.path.join(self.root, "statements", lang, "name.txt")) as f:
                 name = f.read().strip()
+
             res.append(Statement(problem=self, name=name, language=lang))
 
         return res

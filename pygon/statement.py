@@ -25,9 +25,10 @@ import os
 import subprocess
 
 from loguru import logger
+import yaml
 from pkg_resources import resource_filename
 
-from pygon.config import BUILD_DIR, CONFIG
+from pygon.config import BUILD_DIR, CONFIG, TEST_FORMAT
 
 
 class Statement:
@@ -160,6 +161,39 @@ class Statement:
         logger.info("Building {} statement", self.language)
         subprocess.run(cmd, cwd=root, check=True, stdout=subprocess.DEVNULL)
 
+    def get_test_presentation(self, index):
+        """Returns information about test's presentation in statements
+        as dict with following keys:
+
+        wide(bool): use examplewide environment?
+        note(str): if not None, use examplethree environment with this note.
+        input(str): custom input data.
+        answer(str): custom answer data.
+        """
+
+        data = {
+            "wide": False,
+            "note": None,
+            "input": None,
+            "answer": None
+        }
+
+        paths = [
+            os.path.join(self.problem.root, "statements", "tests",
+                         TEST_FORMAT.format(index) + ".yaml"),
+            os.path.join(self.get_statement_root(), "tests",
+                         TEST_FORMAT.format(index) + ".yaml"),
+        ]
+
+        for path in paths:
+            try:
+                with open(path) as f:
+                    data.update(yaml.safe_load(f))
+            except OSError:
+                pass
+
+        return data
+
     def get_tex_samples(self):
         """Returns sample tests in TeX source code form."""
 
@@ -173,26 +207,57 @@ class Statement:
             inp_path = test.get_input_path()
             ans_path = test.get_output_path(main_solution.identifier)
 
-            tests.append((inp_path, ans_path))
+            data = self.get_test_presentation(test.index)
+
+            if data["input"]:
+                inp_path = os.path.join(self.get_build_root(),
+                                        "test.{}".format(test.index))
+                with open(inp_path, "w") as f:
+                    f.write(data["input"])
+
+            data["inp_path"] = inp_path
+
+            if data["answer"]:
+                ans_path = os.path.join(self.get_build_root(),
+                                        "test.{}.a".format(test.index))
+                with open(ans_path, "w") as f:
+                    f.write(data["answer"])
+
+            data["ans_path"] = ans_path
+
+            tests.append(data)
 
         if not tests:
             return ""
 
-        res = r"""
-%s
-\begin{example}
-""" % (r"\Examples" if len(tests) > 1 else r"\Example")
+        if len(tests) > 1:
+            res = ["\\Examples"]
+        else:
+            res = ["\\Example"]
 
-        for inp, ans in tests:
-            res += """\
-\\exmpfile{INP}{ANS}
-""".replace("INP", inp).replace("ANS", ans)
+        prev_env = None
+        for data in tests:
+            if data["note"] is not None:
+                env = "examplethree"
+            elif data["wide"]:
+                env = "examplewide"
+            else:
+                env = "example"
 
-        res += """\
-\\end{example}
-"""
+            if env != prev_env:
+                if prev_env:
+                    res.append("\\end{%s}" % prev_env)
+                res.append("\\begin{%s}" % env)
+                prev_env = env
 
-        return res
+            res.append("\\exmpfile{%s}{%s}" % (data["inp_path"], data["ans_path"]))
+
+            if env == "examplethree":
+                res[-1] += "{%s}" % data["note"]
+
+        res.append("\\end{%s}" % prev_env)
+
+        return "\n".join(res)
 
     def get_tex_statement(self):
         """Returns a TeX code to include the statement."""
