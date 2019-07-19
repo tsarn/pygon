@@ -144,6 +144,11 @@ class Statement:
 
         stmt = stmt.replace("#Language#", "[" + self.language + "]" if
                             self.language in ["russian"] else "")
+        stmt = stmt.replace("#Preamble#", r"""
+\makeatletter
+\renewcommand{\@oddhead}{}
+\makeatother
+""")
         stmt = stmt.replace("#ContestName#", "")
         stmt = stmt.replace("#ContestLocation#", "")
         stmt = stmt.replace("#ContestDate#", "")
