@@ -36,8 +36,8 @@ class Statement:
 
     Attributes:
         problem: a Problem for this statement.
-        name: full problem name (e.g. "A + B")
-        language: statement's language in lowercase english (e.g. "russian")
+        language: statement's language in lowercase English (e.g. "russian").
+        name: full problem name (e.g. "A + B").
     """
 
     def __init__(self, problem, name, language="english"):
@@ -61,8 +61,13 @@ class Statement:
         return os.path.join(self.problem.root, BUILD_DIR,
                             "statements", self.language)
 
+    def get_processed_path(self):
+        """Returns path to processed problem.tex."""
+
+        return os.path.join(self.get_build_root(), "problem.tex")
+
     def get_log_path(self):
-        """Returns path to TeX Live log."""
+        """Returns path to TeX log."""
 
         return os.path.join(self.get_build_root(), "statements.log")
 
@@ -140,19 +145,40 @@ class Statement:
         with open(os.path.join(root, "olymp.sty"), "w") as f:
             f.write(self.read_resource("olymp.sty"))
 
+        with open(self.get_processed_path(), "w") as f:
+            f.write(self.get_tex_statement())
+
+        self.build_statements([self.get_processed_path()], hide_header=True)
+
+    def build_statements(self, statements, name="", location="", date="",
+                         hide_header=False):
+        """Build statement from list of problem.tex files."""
+
+        root = self.get_build_root()
+        os.makedirs(root, exist_ok=True)
+
+        with open(os.path.join(root, "olymp.sty"), "w") as f:
+            f.write(self.read_resource("olymp.sty"))
+
         stmt = self.read_resource("statements.tex")
 
         stmt = stmt.replace("#Language#", "[" + self.language + "]" if
                             self.language in ["russian"] else "")
-        stmt = stmt.replace("#Preamble#", r"""
+        if hide_header:
+            stmt = stmt.replace("#Preamble#", r"""
+\def\ShortProblemTitle{}
 \makeatletter
 \renewcommand{\@oddhead}{}
 \makeatother
 """)
-        stmt = stmt.replace("#ContestName#", "")
-        stmt = stmt.replace("#ContestLocation#", "")
-        stmt = stmt.replace("#ContestDate#", "")
-        stmt = stmt.replace("#Statements#", self.get_tex_statement())
+        else:
+            stmt = stmt.replace("#Preamble#", "")
+
+        stmt = stmt.replace("#ContestName#", name)
+        stmt = stmt.replace("#ContestLocation#", location)
+        stmt = stmt.replace("#ContestDate#", date)
+        stmt = stmt.replace("#Statements#",
+                            "\n".join(["\\input{%s}" % i for i in statements]))
 
         with open(os.path.join(root, "statements.tex"), "w") as f:
             f.write(stmt)
@@ -268,7 +294,6 @@ class Statement:
         """Returns a TeX code to include the statement."""
 
         return r"""
-\def\ShortProblemTitle{}
 \graphicspath{%s}
 \begin{problem}{%s}{%s}{%s}{%s}{%s}
 \renewcommand{\SAMPLES}{%s}

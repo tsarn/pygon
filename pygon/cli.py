@@ -31,6 +31,7 @@ from tabulate import tabulate
 from loguru import logger
 
 from pygon.problem import Problem, ProblemConfigurationError
+from pygon.contest import Contest
 from pygon.checker import Checker
 from pygon.validator import Validator
 from pygon.generator import Generator
@@ -55,6 +56,31 @@ def get_problem():
 
     logger.error("Not in a problem directory")
     sys.exit(1)
+
+
+def get_problem_or_contest():
+    dirname = os.getcwd()
+
+    while True:
+        if os.path.exists(os.path.join(dirname, "problem.yaml")):
+            prob = Problem(dirname)
+            prob.load()
+            return prob
+
+        if os.path.exists(os.path.join(dirname, "contest.yaml")):
+            cont = Contest(dirname)
+            cont.load()
+            return cont
+
+        dirname = os.path.dirname(dirname)
+
+        if os.path.dirname(dirname) == dirname:
+            break
+
+    logger.error("Not in a problem or contest directory")
+    sys.exit(1)
+
+
 
 
 @click.group()
@@ -123,11 +149,11 @@ active_validators: [standard.wfval]
 """.format(name), file=desc, end="")
 
 
-@click.command(help="Build problem")
+@click.command(help="Build problem or contest")
 @click.option("--statements/--no-statements", help="Build statements?",
               default=True, show_default=True)
 def build(statements):
-    prob = get_problem()
+    prob = get_problem_or_contest()
 
     try:
         prob.build(statements=statements)
@@ -136,9 +162,9 @@ def build(statements):
         sys.exit(1)
 
 
-@click.command(help="Lint problem for configuration errors")
+@click.command(help="Lint problem or contest for configuration errors")
 def verify():
-    prob = get_problem()
+    prob = get_problem_or_contest()
 
     try:
         prob.verify()

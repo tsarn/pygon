@@ -1,0 +1,17 @@
+name:
+    english: "Example contest"
+    russian: "Пробный турнир"
+
+location:
+    english: "London, UK"
+    russian: "Лондон, Великобритания"
+
+date:
+    english: "Jan 1, 2019"
+    russian: "1 января 2019"
+
+problems:
+    - id: aplusb
+      prefix: A
+    - id: interactive-guess
+      prefix: B
