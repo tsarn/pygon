@@ -24,11 +24,26 @@
 import os
 
 import yaml
+import click
+from loguru import logger
 from pkg_resources import resource_filename
 
-from pygon.config import BUILD_DIR
+from pygon.config import BUILD_DIR, CONFIG
 from pygon.problem import Problem
 from pygon.statement import Statement
+
+
+def switch_logger(problem=None):
+    if problem:
+        p = "[ {} ]".format(problem)
+    else:
+        p = ""
+
+    logger.remove()
+    logger.add(lambda x: click.echo(x, nl=False, err=True),
+               level=CONFIG["level"],
+               format="<level>P</level> <level>{level:<8}</level> <level>{message}</level>".replace("P", p),
+               colorize=True)
 
 
 class Contest:
@@ -75,7 +90,10 @@ class Contest:
         """Build the contest."""
 
         for prefix, problem in self.problems:
+            switch_logger(problem.internal_name)
             problem.build(statements=False)
+
+        switch_logger()
 
         if statements:
             for lang in self.get_languages():
@@ -89,7 +107,10 @@ class Contest:
         """Run verification on all problems."""
 
         for prefix, problem in self.problems:
+            switch_logger(problem.internal_name)
             problem.verify()
+
+        switch_logger()
 
     def get_descriptor_path(self):
         """Return a path to contest's descriptor file."""
@@ -146,6 +167,7 @@ class ContestStatement(Statement):
         statements = []
 
         for prefix, problem in self.contest.problems:
+            switch_logger(problem.internal_name)
             with open(os.path.join(problem.root, "statements", self.language,
                                    "name.txt")) as f:
                 name = f.read().strip()
@@ -159,6 +181,8 @@ class ContestStatement(Statement):
                 f.write(stmt.get_tex_statement())
 
             statements.append(path)
+
+        switch_logger()
 
         self.build_statements(statements,
                               name=self.name,

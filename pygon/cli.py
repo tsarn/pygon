@@ -30,8 +30,9 @@ import click
 from tabulate import tabulate
 from loguru import logger
 
+from pygon.config import CONFIG
 from pygon.problem import Problem, ProblemConfigurationError
-from pygon.contest import Contest
+from pygon.contest import Contest, switch_logger
 from pygon.checker import Checker
 from pygon.validator import Validator
 from pygon.generator import Generator
@@ -81,22 +82,15 @@ def get_problem_or_contest():
     sys.exit(1)
 
 
-
-
 @click.group()
 @click.option("-v", "--verbose", count=True, help="Show more output")
 def cli(verbose):
-    level = "SUCCESS"
     if verbose == 1:
-        level = "INFO"
+        CONFIG["level"] = "INFO"
     elif verbose > 1:
-        level = "DEBUG"
+        CONFIG["level"] = "DEBUG"
 
-    logger.add(lambda x: click.echo(x, nl=False, err=True),
-               level=level,
-               format=" <level>{level:<8}</level> <level>{message}</level>",
-               colorize=True)
-
+    switch_logger()
 
 @click.command(help="Create a new problem")
 @click.argument("name")
@@ -383,5 +377,4 @@ cli.add_command(stress)
 
 
 def main():
-    logger.remove()
     cli()

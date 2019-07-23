@@ -57,6 +57,9 @@ languages:
     python3:
         execute: "python3 {src}"
         autodetect: [".py"]
+
+# Default log level
+level: SUCCESS
 """
 
 
@@ -76,3 +79,5 @@ def load_config():
 
 
 CONFIG = load_config()
+if "level" not in CONFIG:
+    CONFIG["level"] = "SUCCESS"
