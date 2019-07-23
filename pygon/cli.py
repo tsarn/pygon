@@ -149,6 +149,43 @@ active_validators: [standard.wfval]
 """.format(name), file=desc, end="")
 
 
+@click.command(help="Create a new contest")
+@click.argument("name")
+def initcontest(name):
+    if not re.match(r'^[a-z0-9-]+$', name):
+        print("Please use lowercase English letters, numbers, "
+              "and dashes for the contest name")
+        sys.exit(1)
+    dirname = os.path.abspath(name)
+
+    if os.path.exists(dirname):
+        print("Directory '{}' already exists".format(dirname))
+        sys.exit(1)
+
+    os.makedirs(os.path.join(dirname, "problems"), exist_ok=True)
+    os.makedirs(os.path.join(dirname, "resources"), exist_ok=True)
+
+    with open(os.path.join(dirname, "contest.yaml"), "w") as desc:
+        print("""\
+name:
+    english: "Example contest"
+
+location:
+    english: "London, UK"
+
+date:
+    english: "Jan 1, 2019"
+
+# Uncomment following lines when adding problems:
+
+# problems:
+#     - id: problem-one       # Problem's internal name
+#       prefix: A             # Problem's prefix in contest
+#     - id: problem-two
+#       prefix: B
+""".format(name), file=desc, end="")
+
+
 @click.command(help="Build problem or contest")
 @click.option("--statements/--no-statements", help="Build statements?",
               default=True, show_default=True)
@@ -335,6 +372,7 @@ def stress(command, solutions):
 
 
 cli.add_command(init)
+cli.add_command(initcontest)
 cli.add_command(build)
 cli.add_command(verify)
 cli.add_command(discover)
