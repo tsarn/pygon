@@ -22,6 +22,7 @@
 """This module defines class for working with contests."""
 
 import os
+from shutil import rmtree
 
 import yaml
 import click
@@ -31,6 +32,7 @@ from pkg_resources import resource_filename
 from pygon.config import BUILD_DIR, CONFIG
 from pygon.problem import Problem
 from pygon.statement import Statement
+from pygon.ejudge import export_contest as ejudge_export
 
 
 def switch_logger(problem=None):
@@ -116,6 +118,13 @@ class Contest:
         """Return a path to contest's descriptor file."""
 
         return os.path.join(self.root, "contest.yaml")
+
+    def ejudge_export(self, language=None):
+        """Export problem in ejudge format to BUILD_ROOT/ejudge"""
+
+        path = os.path.join(self.root, BUILD_DIR, "ejudge")
+        rmtree(path, ignore_errors=True)
+        ejudge_export(self, path, language=language)
 
 
 class ContestStatement(Statement):

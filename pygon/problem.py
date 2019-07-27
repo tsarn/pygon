@@ -23,13 +23,15 @@
 
 import os
 import subprocess
+from shutil import rmtree
 
 import yaml
 from loguru import logger
 
 from pygon.testcase import FileName, SolutionTest, CheckerTest, Verdict
 from pygon.testcase import expand_generator_command, ValidatorTest
-from pygon.config import TEST_FORMAT
+from pygon.config import TEST_FORMAT, BUILD_DIR
+from pygon.ejudge import export_problem as ejudge_export
 
 
 class ProblemConfigurationError(Exception):
@@ -605,3 +607,10 @@ class Problem:
                     prefix = False
         else:
             logger.warning("No test cases found")
+
+    def ejudge_export(self, language=None):
+        """Export problem in ejudge format to BUILD_ROOT/ejudge"""
+
+        path = os.path.join(self.root, BUILD_DIR, "ejudge")
+        rmtree(path, ignore_errors=True)
+        ejudge_export(self, path, language=language)

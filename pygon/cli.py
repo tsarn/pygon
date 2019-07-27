@@ -180,6 +180,19 @@ date:
 """.format(name), file=desc, end="")
 
 
+@click.command(help="Export problem or contest to ejudge")
+@click.option("-l", "--language", help="Language for full problem names (e.g. \"english\")")
+def ejudgeexport(language=None):
+    prob = get_problem_or_contest()
+
+    try:
+        prob.build(statements=False)
+        prob.ejudge_export(language=language)
+    except ProblemConfigurationError as e:
+        logger.error("Problem configuration error: {}", str(e))
+        sys.exit(1)
+
+
 @click.command(help="Build problem or contest")
 @click.option("--statements/--no-statements", help="Build statements?",
               default=True, show_default=True)
@@ -374,6 +387,7 @@ cli.add_command(edittests)
 cli.add_command(addstatement)
 cli.add_command(invoke)
 cli.add_command(stress)
+cli.add_command(ejudgeexport)
 
 
 def main():
