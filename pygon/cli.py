@@ -30,7 +30,7 @@ import click
 from tabulate import tabulate
 from loguru import logger
 
-from pygon.config import CONFIG
+from pygon.config import CONFIG, BUILD_DIR
 from pygon.problem import Problem, ProblemConfigurationError
 from pygon.contest import Contest, switch_logger
 from pygon.checker import Checker
@@ -39,6 +39,7 @@ from pygon.generator import Generator
 from pygon.solution import Solution
 from pygon.interactor import Interactor
 from pygon.testcase import SolutionTest, expand_generator_command
+from pygon.ejudge import write_script as write_ejudge_script
 
 
 def get_problem():
@@ -188,6 +189,21 @@ def ejudgeexport(language=None):
     try:
         prob.build(statements=False)
         prob.ejudge_export(language=language)
+    except ProblemConfigurationError as e:
+        logger.error("Problem configuration error: {}", str(e))
+        sys.exit(1)
+
+
+@click.command(help="Print ejudge deployment script")
+@click.option("-l", "--language", help="Language for full problem names (e.g. \"english\")")
+@click.option("-d", "--directory", help="Directory for contest (e.g. \"/home/judges/000001\")")
+def ejudgedeploy(language=None, directory=None):
+    cont = get_problem_or_contest()
+
+    try:
+        cont.build(statements=False)
+        cont.ejudge_export(language=language)
+        write_ejudge_script(os.path.join(cont.root, BUILD_DIR, "ejudge"), contest_dir=directory)
     except ProblemConfigurationError as e:
         logger.error("Problem configuration error: {}", str(e))
         sys.exit(1)
@@ -388,6 +404,7 @@ cli.add_command(addstatement)
 cli.add_command(invoke)
 cli.add_command(stress)
 cli.add_command(ejudgeexport)
+cli.add_command(ejudgedeploy)
 
 
 def main():

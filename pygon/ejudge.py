@@ -22,7 +22,11 @@
 """This module contains code for exporting to ejudge."""
 
 import os
+import sys
 import io
+import tarfile
+import base64
+import shlex
 from shutil import copy2
 
 
@@ -129,3 +133,40 @@ def export_contest(contest, target, language=None):
 
     with open(os.path.join(target, "patch.sh"), "w") as f:
         f.write(PATCHER)
+
+
+def write_script(target, contest_dir=None, fd=sys.stdout):
+    archive = io.BytesIO()
+
+    with tarfile.open(fileobj=archive, mode="w:gz") as f:
+        f.add(target, arcname=".")
+
+    if contest_dir:
+        print("""#!/bin/sh
+OLDPATH="$(pwd)"
+cd %s
+""" % shlex.quote(contest_dir), file=fd)
+    else:
+        print("""#!/bin/sh
+
+if [ "x$1" = "x" ]; then
+    echo "Usage: $0 <contest directory>"
+    exit 1
+fi
+
+OLDPATH="$(pwd)"
+cd "$1"
+""", file=fd)
+
+    print("""
+rm -rf problems contest.cfg patch.sh
+
+cat << _EOF | base64 -d | tar xz""", file=fd)
+
+    archive.seek(0)
+    print(base64.b64encode(archive.read()).decode(), file=fd)
+
+    print("""_EOF
+sh ./patch.sh
+cd "$OLDPATH"
+""", file=fd)
