@@ -349,7 +349,11 @@ class SolutionTest:
         gen.ensure_compile()
 
         if not self.dirname:
-            gen_time = os.path.getmtime(gen.get_executable_path())
+            try:
+                gen_time = os.path.getmtime(gen.get_executable_path())
+            except OSError:
+                gen_time = os.path.getmtime(gen.get_source_path())
+
             desc_time = os.path.getmtime(self.get_descriptor_path())
             try:
                 res_time = os.path.getmtime(self.get_input_path())
