@@ -23,6 +23,7 @@
 
 import os
 import subprocess
+import glob
 from shutil import rmtree
 
 import yaml
@@ -300,6 +301,8 @@ class Problem:
 #
 # Manually entered tests are lines beginning with 'M', then flags,
 # then a path to the input file, relative to the problem root.
+# Globs are supported (you can use /something/*), tests are ordered
+# lexicographically.
 #
 # Generated tests are lines beginning with 'G', then flags,
 # then generator command. By default, ranges are expanded into
@@ -310,7 +313,7 @@ class Problem:
 #
 # List of flags:
 #   S - this test is a sample
-#   R - do not expand ranges in this test (only for generated tests)
+#   R - do not expand ranges or globs in this test
 #
 # For example, following line means a manually entered test that is
 # included in the statements and is located at PROBLEMROOT/tests/01:
@@ -367,9 +370,16 @@ class Problem:
             test = dict(sample="S" in flags)
 
             if flags[0] == "M":
-                with open(os.path.join(self.root, arg), 'rb') as f:
-                    test['data'] = f.read()
-                tests.append(test)
+                if "R" not in flags:
+                    for i in sorted(glob.glob(os.path.join(self.root, arg))):
+                        test = test.copy()
+                        with open(i, 'rb') as f:
+                            test['data'] = f.read()
+                        tests.append(test)
+                else:
+                    with open(os.path.join(self.root, arg), 'rb') as f:
+                        test['data'] = f.read()
+                    tests.append(test)
             elif flags[0] == "G":
                 if "R" not in flags:
                     for i in expand_generator_command(arg):
