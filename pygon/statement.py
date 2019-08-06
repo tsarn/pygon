@@ -191,6 +191,7 @@ class Statement:
 
         logger.info("Building {} statement", self.language)
         subprocess.run(cmd, cwd=root, check=True, stdout=subprocess.DEVNULL)
+        subprocess.run(cmd, cwd=root, check=True, stdout=subprocess.DEVNULL)
 
     def get_test_presentation(self, index):
         """Returns information about test's presentation in statements
