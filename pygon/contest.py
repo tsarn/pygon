@@ -93,7 +93,7 @@ class Contest:
 
         for prefix, problem in self.problems:
             switch_logger(problem.internal_name)
-            problem.build(statements=False)
+            problem.build(statements=statements)
 
         switch_logger()
 
