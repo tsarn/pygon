@@ -327,7 +327,7 @@ def invoke(tests=None, solutions=None):
         if valid:
             s = click.style("YES", fg="green", bold=True)
         else:
-            s = clic.style("NO", fg="red", bold=True)
+            s = click.style("NO", fg="red", bold=True)
             exitcode = 1
         data[-1].append(s)
 
