@@ -143,9 +143,13 @@ class Problem:
             list: source filenames (e.g. ["solve_ok.cpp", "solve_wa.cpp"])
         """
 
+        try:
+            lst = set(os.listdir(os.path.join(self.root, directory)))
+        except FileNotFoundError:
+            return []
+
         res = []
 
-        lst = set(os.listdir(os.path.join(self.root, directory)))
         for i in lst:
             if i.endswith(".yaml"):
                 continue
@@ -168,7 +172,12 @@ class Problem:
         """
 
         dirname = os.path.join(self.root, cls.directory_name)
-        lst = set(os.listdir(dirname))
+
+        try:
+            lst = set(os.listdir(dirname))
+        except FileNotFoundError:
+            return
+
         for src in lst:
             if src.endswith(".yaml"):
                 continue
