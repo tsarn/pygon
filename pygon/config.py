@@ -52,6 +52,13 @@ languages:
         compile: "gcc -Wall -O2 -lm -std=c11 {src} -o {exe} {inc}"
         autodetect: [".c"]
 
+    pascal:
+        autodetect: [".pas"]
+        compile: "fpc -O2 {src} -o{exe}"
+    delphi:
+        autodetect: [".dpr"]
+        compile: "fpc -O2 -Mdelphi {src} -o{exe}"
+
     python2:
         execute: "python2 {src}"
     python3:
