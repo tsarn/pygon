@@ -300,7 +300,7 @@ class Statement:
 \renewcommand{\SAMPLES}{%s}
 \input{%s}
 \end{problem}
-""" % ("".join("{" + i + "}" for i in self.get_resource_dirs()),
+""" % ("".join("{" + i + "/}" for i in self.get_resource_dirs()),
        self.name,
        self.problem.input_file.statement_str("input", self.language),
        self.problem.output_file.statement_str("output", self.language),
